@@ -37,7 +37,7 @@ export function Landing() {
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
           <a
-            href="https://wa.me/2348000000000"
+            href="https://wa.me/2348139414056"
             target="_blank"
             rel="noreferrer"
             className="flex min-h-[44px] items-center gap-2 rounded-full bg-tertiary px-6 text-base font-semibold text-white hover:bg-tertiary-dark"

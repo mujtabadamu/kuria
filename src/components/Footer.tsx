@@ -22,7 +22,7 @@ export function Footer() {
               <p className="label-text text-white/50">Contact</p>
               <ul className="mt-2 space-y-1.5 text-white/70">
                 <li>info@yapd4africa.org</li>
-                <li>+234 800 000 0000</li>
+                <li>+234 813 941 4056</li>
               </ul>
             </div>
           </div>
