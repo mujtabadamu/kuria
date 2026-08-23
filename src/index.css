@@ -1,0 +1,112 @@
+@import 'tailwindcss';
+@import 'leaflet/dist/leaflet.css';
+
+@theme {
+  --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Unica One', 'Inter', system-ui, sans-serif;
+  --font-h1: 'Archivo', 'Inter', system-ui, sans-serif;
+  --font-label: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --color-primary: #0d2234;
+  --color-secondary: #5a7589;
+  --color-tertiary: #2e8fc4;
+  --color-tertiary-dark: #226f9c;
+  --color-danger: #d64545;
+  --color-neutral: #e8edf2;
+  --color-surface: #f6f9fc;
+  --color-on-primary: #f6f9fc;
+
+  /* Fixed dark chrome (sidebar, footer, avatars) — does not flip with theme */
+  --color-chrome: #0d2234;
+  --color-on-chrome: #f6f9fc;
+
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+}
+
+:root {
+  color-scheme: light;
+  font-size: 16px;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-primary: #e7ecf2;
+  --color-secondary: #8ca0b3;
+  --color-tertiary: #4fa8da;
+  --color-tertiary-dark: #6fbce4;
+  --color-danger: #e2685f;
+  --color-neutral: #0b1622;
+  --color-surface: #111e2e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@layer base {
+  body {
+    margin: 0;
+    background: var(--color-neutral);
+    color: var(--color-primary);
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-h1);
+    font-weight: 500;
+    color: var(--color-primary);
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    color: var(--color-tertiary);
+  }
+
+  button {
+    font-family: inherit;
+  }
+}
+
+.label-text {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.text-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+}
+
+/* Visible focus states for accessibility (44x44 touch targets are enforced per-component) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--color-tertiary);
+  outline-offset: 2px;
+}
+
+.leaflet-container {
+  font-family: var(--font-sans);
+}
