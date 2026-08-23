@@ -49,7 +49,7 @@ export function Fellows() {
                 <strong className="text-primary">{fellow.reportsVerified}</strong> verified
               </span>
               {fellow.trainingComplete ? (
-                <span className="inline-flex items-center gap-1 font-semibold text-primary">
+                <span className="inline-flex items-center gap-1 font-semibold text-success">
                   <BadgeCheck size={16} />
                   Trained
                 </span>

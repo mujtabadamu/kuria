@@ -13,7 +13,7 @@ export function Dashboard() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <MetricCard label="Reports today" value={stats.reportsToday} icon={FileText} />
-        <MetricCard label="Verified %" value={`${stats.verificationRate}%`} icon={CheckCircle2} />
+        <MetricCard label="Verified %" value={`${stats.verificationRate}%`} icon={CheckCircle2} tone="success" />
         <MetricCard label="Active fellows" value={stats.fellowsTrained} icon={Users} />
         <MetricCard
           label="Open disinfo alerts"

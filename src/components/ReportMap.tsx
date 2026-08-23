@@ -6,7 +6,7 @@ import type { ReportStatus, VoiceReport } from '../data/mockData'
 import { StatusBadge } from './StatusBadge'
 
 const statusColor: Record<ReportStatus, string> = {
-  verified: '#5a7589',
+  verified: '#22a559',
   pending: '#0d2234',
   flagged: '#d64545',
 }

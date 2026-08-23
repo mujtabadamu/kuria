@@ -12,7 +12,7 @@ This system follows **design.md ("Architect Blueprint")**: a flat, single-accent
 
 Design principles:
 - **One accent, reserved.** Tertiary blue (`#2E8FC4`) is used for the page's primary call-to-action, active nav/filter state, and focus rings — never decoratively, never doubled up with another hue.
-- **Status is conveyed by icon + weight, and Danger red for the flagged/confirmed tier.** Verified/Pending badges use the primary/secondary/surface palette, differentiated by icon (CheckCircle2 / Clock) and fill weight; Flagged/Confirmed uses Danger red, since that severity tier is a deliberate exception (see §2).
+- **Status is conveyed by icon + weight, with Success green and Danger red as the two deliberate hue exceptions.** Pending badges use the secondary/surface palette (icon: Clock); Verified uses Success green (icon: CheckCircle2); Flagged/Confirmed uses Danger red (icon: Flag) — both real-world safety/trust signals override the flat single-accent rule by design (see §2).
 - **Flat on purpose.** No gradients, no drop shadows beyond subtle card elevation, corners are 0–2px.
 - **Bilingual by design** — voice reports and content are auto-translated/transcribed server-side (Hausa & English shown side by side where relevant); the app itself has no manual language switcher.
 
@@ -26,13 +26,13 @@ Design principles:
 | Secondary | Secondary Slate | `#5A7589` | Borders, captions, metadata, muted/administrative actions |
 | Tertiary | Tertiary Blue | `#2E8FC4` | The sole interaction accent — primary CTA buttons, active nav/filter state, focus rings |
 | Tertiary Dark | — | `#226F9C` | Hover state for tertiary buttons |
+| Success | Verified Green | `#22A559` | Verified reports, "Mark verified" action, trained-fellow badges — the other deliberate exception to the single-accent rule |
 | Danger | Signal Red | `#D64545` | Flagged reports, confirmed disinformation, high-severity alerts — the one deliberate exception to the single-accent rule |
 | Neutral | Neutral | `#E8EDF2` | Page background |
 | Surface | Surface | `#F6F9FC` | Cards, panels |
 | On-Primary | On-Primary | `#F6F9FC` | Text on dark (primary) surfaces |
 
-**Rule of thumb:** Tertiary is spent on exactly one action per screen (the page's main CTA, or the single active nav/filter item — which is naturally always "one" at a time). Everything else — logos, repeated "View" links, decorative icons, static numbers — uses Primary or Secondary. Status badges are differentiated by icon and fill weight, **except** the "flagged"/"confirmed disinformation" state, which uses Danger red — real-world safety signal (electoral disinformation) overrides the flat single-accent rule here by design. Danger never appears for anything else; it's reserved exclusively for that one severity tier, so it keeps its urgency.
-
+**Rule of thumb:** Tertiary is spent on exactly one action per screen (the page's main CTA, or the single active nav/filter item — which is naturally always "one" at a time). Everything else — logos, repeated "View" links, decorative icons, static numbers — uses Primary or Secondary. Status badges are differentiated by icon and fill weight, **except** "verified" (Success green) and "flagged"/"confirmed disinformation" (Danger red) — both reserved exclusively for those tiers, so they keep their meaning.
 ---
 
 ## 3. Typography
@@ -92,7 +92,7 @@ Optional 11th route if you want account management: `/settings` (profile, notifi
 **Layout:** Sidebar (Primary/dark, icons + labels: Dashboard, Reports, Map, Alerts, Fellows, Voter Ed, Settings) + main content area.
 - **Top bar:** Notification indicator, user avatar/name (no global search — search lives on the pages that need it: Reports, Alerts, Fellows).
 - **Metric row:** 4 cards — Total reports today, Verified %, Active fellows, Open disinformation alerts (solid danger-red card when count > 0).
-- **Map preview widget:** Small embedded map (Kaduna focus) with status-coded pins (secondary = verified, primary = pending, danger red = flagged) — click-through to `/map`.
+- **Map preview widget:** Small embedded map (Kaduna focus) with status-coded pins (success green = verified, primary = pending, danger red = flagged) — click-through to `/map`.
 - **Recent reports table:** Last 6 incoming voice reports — columns: time, LGA, language (EN/HA badge), status badge, "View" link.
 - **Recent alerts panel:** List of latest alerts, left-border weight/color signals severity (danger red = high, secondary = normal).
 
@@ -105,11 +105,11 @@ Optional 11th route if you want account management: `/settings` (profile, notifi
 ### 5. `/reports/:id` — Report detail
 **Layout:** Two-column. Left = report content, right = metadata/verification panel.
 - **Left column:** Full transcript (Hausa + auto-translated English side by side), embedded audio player, mono-label field headers.
-- **Right column (sticky card):** Status badge, reporter info, GPS/LGA/polling unit, timestamp, verification notes field, three-tier action buttons — "Mark verified" (tertiary, filled — the one reserved action), "Flag as disinformation" (danger-red outline — the next most consequential action), "Escalate to electoral body" (secondary outline — administrative, lowest emphasis).
+- **Right column (sticky card):** Status badge, reporter info, GPS/LGA/polling unit, timestamp, verification notes field, three-tier action buttons — "Mark verified" (success green, filled), "Flag as disinformation" (danger-red outline — the next most consequential action), "Escalate to electoral body" (secondary outline — administrative, lowest emphasis).
 
 ### 6. `/map` — Live map view
 **Layout:** Full-bleed map (Kaduna State default, zoomable to Northern Nigeria) with a collapsible left panel.
-- **Map pins:** Status-coded (secondary = verified, primary = pending, danger red = flagged), clustered at high zoom. Style switcher (top-right: Standard/Light/Dark tiles) on this full map view — not on the dashboard preview.
+- **Map pins:** Status-coded (success green = verified, primary = pending, danger red = flagged), clustered at high zoom. Style switcher (top-right: Standard/Light/Dark tiles) on this full map view — not on the dashboard preview.
 - **Left panel:** Legend (StatusBadge components), filters (same as reports page), live counter.
 - **Pin click:** Opens a small popup card with report summary + "View full report" link to `/reports/:id`.
 
@@ -120,7 +120,7 @@ Optional 11th route if you want account management: `/settings` (profile, notifi
 
 ### 8. `/fellows` — Digital Integrity Fellows directory
 **Layout:** Grid of profile cards (3–4 per row on desktop).
-- Each card: avatar (primary circle), name, LGA assigned, # of reports verified, training status (primary text + BadgeCheck icon if trained, muted secondary text if in training), "View profile" link (primary outline — repeated per card, so it deliberately isn't tertiary).
+- Each card: avatar (chrome-dark circle), name, LGA assigned, # of reports verified, training status (success-green text + BadgeCheck icon if trained, muted secondary text if in training), "View profile" link (primary outline — repeated per card, so it deliberately isn't tertiary).
 - Top bar: search + "Add fellow" button (tertiary — the page's one reserved action, admin only).
 
 ### 9. `/voter-education` — Voter education hub

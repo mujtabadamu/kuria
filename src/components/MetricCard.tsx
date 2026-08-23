@@ -5,12 +5,17 @@ export function MetricCard({
   value,
   icon: Icon,
   accent = false,
+  tone = 'default',
 }: {
   label: string
   value: string | number
   icon?: LucideIcon
   accent?: boolean
+  tone?: 'default' | 'success'
 }) {
+  const valueColor = accent ? 'text-white' : tone === 'success' ? 'text-success' : 'text-primary'
+  const iconColor = accent ? 'text-white' : tone === 'success' ? 'text-success' : 'text-primary'
+
   return (
     <div
       className={`rounded-2xl border p-5 ${
@@ -19,17 +24,9 @@ export function MetricCard({
     >
       <div className="flex items-center justify-between">
         <p className={`label-text ${accent ? 'text-white/70' : 'text-secondary'}`}>{label}</p>
-        {Icon && (
-          <Icon
-            size={20}
-            className={accent ? 'text-white' : 'text-primary'}
-            aria-hidden="true"
-          />
-        )}
+        {Icon && <Icon size={20} className={iconColor} aria-hidden="true" />}
       </div>
-      <p className={`mt-2 text-3xl font-bold tabular-nums ${accent ? 'text-white' : 'text-primary'}`}>
-        {value}
-      </p>
+      <p className={`mt-2 text-3xl font-bold tabular-nums ${valueColor}`}>{value}</p>
     </div>
   )
 }

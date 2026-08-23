@@ -97,7 +97,7 @@ export function ReportDetail() {
             </dl>
 
             {report.verifiedBy && (
-              <p className="rounded-lg bg-primary/5 px-3 py-2 text-sm text-primary">
+              <p className="rounded-lg bg-success/10 px-3 py-2 text-sm text-success">
                 Verified by <strong>{report.verifiedBy}</strong>
               </p>
             )}
@@ -119,7 +119,7 @@ export function ReportDetail() {
             <div className="space-y-2">
               <button
                 type="button"
-                className="min-h-[44px] w-full rounded-lg bg-tertiary text-sm font-semibold text-white hover:bg-tertiary-dark"
+                className="min-h-[44px] w-full rounded-lg bg-success text-sm font-semibold text-white hover:bg-success-dark"
               >
                 Mark verified
               </button>

@@ -8,7 +8,7 @@ const config: Record<
   verified: {
     label: 'Verified',
     icon: CheckCircle2,
-    classes: 'bg-surface text-primary border-primary/40',
+    classes: 'bg-surface text-success border-success/40',
   },
   pending: {
     label: 'Pending',

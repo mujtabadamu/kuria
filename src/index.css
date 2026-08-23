@@ -12,6 +12,8 @@
   --color-tertiary: #2e8fc4;
   --color-tertiary-dark: #226f9c;
   --color-danger: #d64545;
+  --color-success: #22a559;
+  --color-success-dark: #198a47;
   --color-neutral: #e8edf2;
   --color-surface: #f6f9fc;
   --color-on-primary: #f6f9fc;
@@ -39,6 +41,8 @@
   --color-tertiary: #4fa8da;
   --color-tertiary-dark: #6fbce4;
   --color-danger: #e2685f;
+  --color-success: #3fbe72;
+  --color-success-dark: #55cf85;
   --color-neutral: #0b1622;
   --color-surface: #111e2e;
 }

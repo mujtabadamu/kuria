@@ -59,7 +59,7 @@ export function Landing() {
           <StatCard value={stats.reportsCollected.toLocaleString()} label="Reports collected" />
           <StatCard value={String(stats.lgasCovered)} label="LGAs covered" />
           <StatCard value={String(stats.fellowsTrained)} label="Fellows trained" />
-          <StatCard value={`${stats.verificationRate}%`} label="Verification rate" />
+          <StatCard value={`${stats.verificationRate}%`} label="Verification rate" tone="success" />
         </div>
       </section>
 
