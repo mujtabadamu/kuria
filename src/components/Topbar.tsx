@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router-dom'
 import { Bell, Menu, Moon, Sun } from 'lucide-react'
 import { Sidebar } from './Sidebar'
@@ -61,17 +62,19 @@ export function Topbar() {
         </div>
       </div>
 
-      {menuOpen && (
-        <div className="fixed inset-0 z-[1100] flex md:hidden">
-          <Sidebar onClose={() => setMenuOpen(false)} />
-          <button
-            type="button"
-            aria-label="Close menu overlay"
-            className="flex-1 bg-black/40"
-            onClick={() => setMenuOpen(false)}
-          />
-        </div>
-      )}
+      {menuOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[1100] flex md:hidden">
+            <Sidebar onClose={() => setMenuOpen(false)} />
+            <button
+              type="button"
+              aria-label="Close menu overlay"
+              className="flex-1 bg-black/40"
+              onClick={() => setMenuOpen(false)}
+            />
+          </div>,
+          document.body,
+        )}
     </header>
   )
 }

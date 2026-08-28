@@ -21,7 +21,9 @@ const selectStyles = createSelectStyles<StatusOption>()
 export function MapPage() {
   const { reports } = useAppData()
   const [status, setStatus] = useState<ReportStatus | 'all'>('all')
-  const [panelOpen, setPanelOpen] = useState(true)
+  const [panelOpen, setPanelOpen] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches,
+  )
 
   const filtered = useMemo(
     () => reports.filter((r) => status === 'all' || r.status === status),
@@ -31,7 +33,15 @@ export function MapPage() {
   return (
     <div className="relative flex h-[calc(100vh-64px)] -m-4 sm:-m-6">
       {panelOpen && (
-        <div className="z-10 w-72 shrink-0 overflow-y-auto border-r border-secondary/30 bg-surface p-5">
+        <div
+          aria-hidden="true"
+          onClick={() => setPanelOpen(false)}
+          className="fixed inset-0 z-[1050] bg-black/40 md:hidden"
+        />
+      )}
+
+      {panelOpen && (
+        <div className="fixed inset-y-0 left-0 z-[1100] w-72 shrink-0 overflow-y-auto border-r border-secondary/30 bg-surface p-5 md:static md:inset-auto md:z-10">
           <h2 className="text-lg font-bold text-primary">Live reports</h2>
           <p className="mt-1 text-sm text-secondary">
             <strong className="text-primary">{filtered.length}</strong> reports in the last hour
@@ -70,7 +80,7 @@ export function MapPage() {
         type="button"
         onClick={() => setPanelOpen((v) => !v)}
         aria-label={panelOpen ? 'Collapse panel' : 'Expand panel'}
-        className="absolute left-0 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-r-lg border border-l-0 border-secondary/30 bg-surface text-primary shadow-sm"
+        className="absolute left-0 top-4 z-[1100] flex h-11 w-11 items-center justify-center rounded-r-lg border border-l-0 border-secondary/30 bg-surface text-primary shadow-sm"
         style={{ left: panelOpen ? '288px' : '0px' }}
       >
         {panelOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
