@@ -24,7 +24,7 @@ export function Login() {
             aria-selected={role === 'admin'}
             onClick={() => setRole('admin')}
             className={`min-h-[40px] rounded-md text-sm font-semibold transition-colors ${
-              role === 'admin' ? 'bg-surface text-primary shadow-sm' : 'text-secondary hover:text-primary'
+              role === 'admin' ? 'bg-tertiary text-white shadow-sm' : 'text-secondary hover:text-primary'
             }`}
           >
             Admin
@@ -35,7 +35,7 @@ export function Login() {
             aria-selected={role === 'fellow'}
             onClick={() => setRole('fellow')}
             className={`min-h-[40px] rounded-md text-sm font-semibold transition-colors ${
-              role === 'fellow' ? 'bg-surface text-primary shadow-sm' : 'text-secondary hover:text-primary'
+              role === 'fellow' ? 'bg-tertiary text-white shadow-sm' : 'text-secondary hover:text-primary'
             }`}
           >
             Fellow

@@ -1,8 +1,6 @@
-import { Link, NavLink } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from '../lib/useTheme'
-
-const links = [{ to: '/about', label: 'About' }]
 
 export function PublicHeader() {
   const { theme, toggleTheme } = useTheme()
@@ -16,21 +14,6 @@ export function PublicHeader() {
           </span>
           Kuri&apos;a
         </Link>
-        <nav className="hidden items-center gap-6 sm:flex" aria-label="Primary">
-          {links.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={({ isActive }) =>
-                `min-h-[44px] flex items-center text-sm font-semibold ${
-                  isActive ? 'text-tertiary' : 'text-primary hover:text-tertiary'
-                }`
-              }
-            >
-              {link.label}
-            </NavLink>
-          ))}
-        </nav>
         <div className="flex items-center gap-3">
           <button
             type="button"

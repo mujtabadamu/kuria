@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { CheckCircle2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { CheckCircle2, LogOut } from 'lucide-react'
 
 const STORAGE_KEY = 'kuria-settings'
 
@@ -24,6 +25,7 @@ function loadSettings(): StoredSettings {
 }
 
 export function Settings() {
+  const navigate = useNavigate()
   const [initial] = useState(loadSettings)
   const [name, setName] = useState(initial.name)
   const [email, setEmail] = useState(initial.email)
@@ -95,6 +97,15 @@ export function Settings() {
           </p>
         )}
       </div>
+
+      <button
+        type="button"
+        onClick={() => navigate('/login')}
+        className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border-2 border-danger text-sm font-semibold text-danger hover:bg-danger hover:text-white"
+      >
+        <LogOut size={16} />
+        Log out
+      </button>
     </div>
   )
 }
