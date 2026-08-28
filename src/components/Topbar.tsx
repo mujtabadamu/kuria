@@ -10,7 +10,6 @@ const titles: Record<string, string> = {
   '/map': 'Live Map',
   '/alerts': 'Disinformation Alerts',
   '/fellows': 'Digital Integrity Fellows',
-  '/voter-education': 'Voter Education',
   '/settings': 'Settings',
 }
 

@@ -15,7 +15,6 @@ export function Footer() {
               <p className="label-text text-white/50">Project</p>
               <ul className="mt-2 space-y-1.5 text-white/70">
                 <li><a href="/about" className="text-white/70 hover:text-white">About</a></li>
-                <li><a href="/voter-education" className="text-white/70 hover:text-white">Voter Education</a></li>
               </ul>
             </div>
             <div>

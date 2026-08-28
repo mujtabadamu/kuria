@@ -18,7 +18,7 @@ const config: Record<
   flagged: {
     label: 'Flagged',
     icon: Flag,
-    classes: 'bg-danger text-white border-danger',
+    classes: 'bg-surface text-danger border-danger/40',
   },
 }
 

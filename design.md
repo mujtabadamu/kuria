@@ -47,6 +47,11 @@ components:
     rounded: "{rounded.lg}"
     padding: 24px
 ---
+> **Superseded on color, type, and shape.** The app now uses
+> [Kuria-Design-System](../Kuria-Design-System/README.md) (green accent, Outfit
+> headings, rounded corners) — see [admin.md](../admin.md) for what's current.
+> Kept here for history.
+
 ## Overview
 
 An architect's-office system.

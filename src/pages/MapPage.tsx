@@ -4,7 +4,8 @@ import Select from 'react-select'
 import { ReportMap } from '../components/ReportMap'
 import { StatusBadge } from '../components/StatusBadge'
 import { createSelectStyles } from '../lib/selectStyles'
-import { reports, type ReportStatus } from '../data/mockData'
+import { type ReportStatus } from '../data/mockData'
+import { useAppData } from '../lib/useAppData'
 
 type StatusOption = { label: string; value: ReportStatus | 'all' }
 
@@ -18,12 +19,13 @@ const statusFilters: StatusOption[] = [
 const selectStyles = createSelectStyles<StatusOption>()
 
 export function MapPage() {
+  const { reports } = useAppData()
   const [status, setStatus] = useState<ReportStatus | 'all'>('all')
   const [panelOpen, setPanelOpen] = useState(true)
 
   const filtered = useMemo(
     () => reports.filter((r) => status === 'all' || r.status === status),
-    [status],
+    [reports, status],
   )
 
   return (

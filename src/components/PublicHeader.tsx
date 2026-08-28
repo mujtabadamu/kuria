@@ -2,10 +2,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from '../lib/useTheme'
 
-const links = [
-  { to: '/about', label: 'About' },
-  { to: '/voter-education', label: 'Voter Education' },
-]
+const links = [{ to: '/about', label: 'About' }]
 
 export function PublicHeader() {
   const { theme, toggleTheme } = useTheme()

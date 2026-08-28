@@ -3,18 +3,21 @@ import { FileText, CheckCircle2, Users, ShieldAlert } from 'lucide-react'
 import { MetricCard } from '../components/MetricCard'
 import { ReportRow } from '../components/ReportRow'
 import { ReportMap } from '../components/ReportMap'
-import { reports, alerts, stats } from '../data/mockData'
+import { stats } from '../data/mockData'
+import { useAppData } from '../lib/useAppData'
 
 export function Dashboard() {
+  const { reports, alerts } = useAppData()
   const recent = reports.slice(0, 6)
   const recentAlerts = alerts.slice(0, 3)
+  const verifiedCount = reports.filter((r) => r.status === 'verified').length
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <MetricCard label="Reports today" value={stats.reportsToday} icon={FileText} />
-        <MetricCard label="Verified %" value={`${stats.verificationRate}%`} icon={CheckCircle2} tone="success" />
-        <MetricCard label="Active fellows" value={stats.fellowsTrained} icon={Users} />
+        <MetricCard label="Total Reports" value={stats.reportsCollected.toLocaleString()} icon={FileText} />
+        <MetricCard label="Verified" value={verifiedCount} icon={CheckCircle2} tone="success" />
+        <MetricCard label="Active users" value={stats.activeUsers} icon={Users} />
         <MetricCard
           label="Open disinfo alerts"
           value={stats.activeAlerts}
@@ -43,12 +46,7 @@ export function Dashboard() {
           </div>
           <div className="space-y-3">
             {recentAlerts.map((alert) => (
-              <div
-                key={alert.id}
-                className={`rounded-xl border-l-4 bg-surface p-4 shadow-sm ${
-                  alert.severity === 'high' ? 'border-l-danger' : 'border-l-secondary'
-                }`}
-              >
+              <div key={alert.id} className="rounded-xl border border-secondary/30 bg-surface p-4 shadow-sm">
                 <p className="text-sm font-semibold text-primary">{alert.title}</p>
                 <p className="mt-1 text-xs text-secondary">{alert.source}</p>
               </div>

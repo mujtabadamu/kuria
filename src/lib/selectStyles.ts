@@ -5,7 +5,7 @@ export function createSelectStyles<Option>(): StylesConfig<Option, false> {
     control: (base, state) => ({
       ...base,
       minHeight: 44,
-      borderRadius: 2,
+      borderRadius: 'var(--radius-lg)',
       backgroundColor: 'var(--color-surface)',
       borderColor: state.isFocused
         ? 'var(--color-tertiary)'
@@ -25,7 +25,7 @@ export function createSelectStyles<Option>(): StylesConfig<Option, false> {
     }),
     menu: (base) => ({
       ...base,
-      borderRadius: 2,
+      borderRadius: 'var(--radius-lg)',
       overflow: 'hidden',
       border: '1px solid color-mix(in srgb, var(--color-secondary) 30%, transparent)',
       boxShadow: '0 4px 12px rgba(0,0,0,0.18)',

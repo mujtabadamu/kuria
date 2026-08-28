@@ -13,17 +13,17 @@ export function MetricCard({
   accent?: boolean
   tone?: 'default' | 'success'
 }) {
-  const valueColor = accent ? 'text-white' : tone === 'success' ? 'text-success' : 'text-primary'
-  const iconColor = accent ? 'text-white' : tone === 'success' ? 'text-success' : 'text-primary'
+  const valueColor = accent ? 'text-danger' : tone === 'success' ? 'text-success' : 'text-primary'
+  const iconColor = accent ? 'text-danger' : tone === 'success' ? 'text-success' : 'text-primary'
 
   return (
     <div
       className={`rounded-2xl border p-5 ${
-        accent ? 'border-danger bg-danger' : 'border-secondary/30 bg-surface'
+        accent ? 'border-danger/40 bg-surface' : 'border-secondary/30 bg-surface'
       }`}
     >
       <div className="flex items-center justify-between">
-        <p className={`label-text ${accent ? 'text-white/70' : 'text-secondary'}`}>{label}</p>
+        <p className={`label-text ${accent ? 'text-danger' : 'text-secondary'}`}>{label}</p>
         {Icon && <Icon size={20} className={iconColor} aria-hidden="true" />}
       </div>
       <p className={`mt-2 text-3xl font-bold tabular-nums ${valueColor}`}>{value}</p>

@@ -6,9 +6,9 @@ import type { ReportStatus, VoiceReport } from '../data/mockData'
 import { StatusBadge } from './StatusBadge'
 
 const statusColor: Record<ReportStatus, string> = {
-  verified: '#22a559',
-  pending: '#0d2234',
-  flagged: '#d64545',
+  verified: '#00897B',
+  pending: '#1A1A1A',
+  flagged: '#D32F2F',
 }
 
 function pinIcon(status: ReportStatus) {

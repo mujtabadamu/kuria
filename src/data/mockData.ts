@@ -35,31 +35,22 @@ export interface DisinfoAlert {
 export interface Fellow {
   id: string
   name: string
+  state: string
   lga: string
   reportsVerified: number
+  reportsFlagged: number
   trainingComplete: boolean
   avatarInitials: string
   phone: string
   email: string
   joinedDate: string
-}
-
-export interface Manifesto {
-  id: string
-  party: string
-  candidate: string
-  color: string
-  summaryEn: string
-  summaryHa: string
-  audioDuration: string
+  active: boolean
 }
 
 export const stats = {
   reportsCollected: 4821,
   lgasCovered: 23,
-  fellowsTrained: 142,
-  verificationRate: 91,
-  reportsToday: 63,
+  activeUsers: 187,
   activeAlerts: 4,
 }
 
@@ -219,6 +210,161 @@ export const reports: VoiceReport[] = [
     reporter: 'Anonymous',
     audioDuration: '0:36',
   },
+  {
+    id: 'RPT-1052',
+    timestamp: '2026-08-18T09:20:00',
+    state: 'Kaduna',
+    lga: 'Kaduna South',
+    pollingUnit: 'PU 021 - Barnawa',
+    lat: 10.4667,
+    lng: 7.4333,
+    language: 'EN',
+    transcriptHa: '',
+    transcriptEn: 'Accreditation started on time, no issues so far.',
+    status: 'verified',
+    reporter: 'Anonymous',
+    verifiedBy: 'Amina Yusuf',
+    audioDuration: '0:24',
+  },
+  {
+    id: 'RPT-1053',
+    timestamp: '2026-08-18T14:05:00',
+    state: 'Kaduna',
+    lga: 'Zaria',
+    pollingUnit: 'PU 014 - Tudun Wada',
+    lat: 11.0964,
+    lng: 7.7241,
+    language: 'HA',
+    transcriptHa: 'Ana jiran isowar akwatunan zabe.',
+    transcriptEn: 'Still waiting on ballot box delivery.',
+    status: 'pending',
+    reporter: 'Anonymous',
+    audioDuration: '0:18',
+  },
+  {
+    id: 'RPT-1054',
+    timestamp: '2026-08-19T08:45:00',
+    state: 'Kaduna',
+    lga: 'Chikun',
+    pollingUnit: 'PU 005 - Kujama',
+    lat: 10.3894,
+    lng: 7.3517,
+    language: 'EN',
+    transcriptHa: '',
+    transcriptEn: 'Queue moving steadily, INEC officials present and orderly.',
+    status: 'verified',
+    reporter: 'Grace Danladi',
+    verifiedBy: 'Emeka Obi',
+    audioDuration: '0:31',
+  },
+  {
+    id: 'RPT-1055',
+    timestamp: '2026-08-19T16:30:00',
+    state: 'Kaduna',
+    lga: 'Sabon Gari',
+    pollingUnit: 'PU 022 - Basawa',
+    lat: 11.1706,
+    lng: 7.6519,
+    language: 'HA',
+    transcriptHa: 'An ga wasu mutane suna rarraba kudi kusa da rumfar zabe.',
+    transcriptEn: 'Individuals seen distributing cash near the polling unit.',
+    status: 'flagged',
+    reporter: 'Anonymous',
+    audioDuration: '0:52',
+  },
+  {
+    id: 'RPT-1056',
+    timestamp: '2026-08-20T09:10:00',
+    state: 'Kaduna',
+    lga: 'Igabi',
+    pollingUnit: 'PU 008 - Turunku',
+    lat: 10.7211,
+    lng: 7.4602,
+    language: 'EN',
+    transcriptHa: '',
+    transcriptEn: 'Polling unit opened on schedule, accreditation smooth.',
+    status: 'verified',
+    reporter: 'Anonymous',
+    verifiedBy: 'Amina Yusuf',
+    audioDuration: '0:20',
+  },
+  {
+    id: 'RPT-1057',
+    timestamp: '2026-08-20T13:15:00',
+    state: 'Kaduna',
+    lga: 'Kagarko',
+    pollingUnit: 'PU 012 - Kubacha',
+    lat: 9.6912,
+    lng: 7.8244,
+    language: 'HA',
+    transcriptHa: 'Injin BVAS na dagewa, ana gyara shi yanzu.',
+    transcriptEn: 'BVAS machine intermittently failing, being fixed on site.',
+    status: 'pending',
+    reporter: 'Musa Bello',
+    audioDuration: '0:27',
+  },
+  {
+    id: 'RPT-1058',
+    timestamp: '2026-08-21T10:05:00',
+    state: 'Kaduna',
+    lga: 'Giwa',
+    pollingUnit: 'PU 018 - Galadimawa',
+    lat: 11.4102,
+    lng: 7.6288,
+    language: 'EN',
+    transcriptHa: '',
+    transcriptEn: 'Low turnout so far this morning, no incidents.',
+    status: 'pending',
+    reporter: 'Hauwa Ibrahim',
+    audioDuration: '0:16',
+  },
+  {
+    id: 'RPT-1059',
+    timestamp: '2026-08-21T15:50:00',
+    state: 'Kaduna',
+    lga: 'Jaba',
+    pollingUnit: 'PU 003 - Fadan Kaje',
+    lat: 9.4285,
+    lng: 8.0554,
+    language: 'HA',
+    transcriptHa: 'An hana wasu daga zabe saboda rashin PVC.',
+    transcriptEn: 'Several voters turned away for lacking a valid PVC.',
+    status: 'flagged',
+    reporter: 'Anonymous',
+    audioDuration: '0:44',
+  },
+  {
+    id: 'RPT-1060',
+    timestamp: '2026-08-22T08:30:00',
+    state: 'Kaduna',
+    lga: 'Kajuru',
+    pollingUnit: 'PU 009 - Kufana',
+    lat: 10.3298,
+    lng: 7.6912,
+    language: 'EN',
+    transcriptHa: '',
+    transcriptEn: 'Voting proceeding calmly, security presence adequate.',
+    status: 'verified',
+    reporter: 'Anonymous',
+    verifiedBy: 'Emeka Obi',
+    audioDuration: '0:23',
+  },
+  {
+    id: 'RPT-1061',
+    timestamp: '2026-08-22T17:40:00',
+    state: 'Kaduna',
+    lga: 'Soba',
+    pollingUnit: 'PU 013 - Dan Alhaji',
+    lat: 11.163,
+    lng: 8.0611,
+    language: 'HA',
+    transcriptHa: 'An kammala zabe, ana jiran sakamako.',
+    transcriptEn: 'Voting concluded, results collation pending.',
+    status: 'verified',
+    reporter: 'Anonymous',
+    verifiedBy: 'Amina Yusuf',
+    audioDuration: '0:19',
+  },
 ]
 
 export const alerts: DisinfoAlert[] = [
@@ -283,98 +429,86 @@ export const fellows: Fellow[] = [
   {
     id: 'FEL-01',
     name: 'Amina Yusuf',
+    state: 'Kaduna',
     lga: 'Kaduna North',
     reportsVerified: 214,
+    reportsFlagged: 31,
     trainingComplete: true,
     avatarInitials: 'AY',
     phone: '+234 803 555 0142',
     email: 'amina.yusuf@yapd4africa.org',
     joinedDate: '2025-11-03',
+    active: true,
   },
   {
     id: 'FEL-02',
     name: 'Emeka Obi',
+    state: 'Kaduna',
     lga: 'Kagarko',
     reportsVerified: 176,
+    reportsFlagged: 24,
     trainingComplete: true,
     avatarInitials: 'EO',
     phone: '+234 806 555 0198',
     email: 'emeka.obi@yapd4africa.org',
     joinedDate: '2025-11-10',
+    active: true,
   },
   {
     id: 'FEL-03',
     name: 'Grace Danladi',
+    state: 'Kaduna',
     lga: 'Zaria',
     reportsVerified: 132,
+    reportsFlagged: 18,
     trainingComplete: true,
     avatarInitials: 'GD',
     phone: '+234 810 555 0223',
     email: 'grace.danladi@yapd4africa.org',
     joinedDate: '2025-12-01',
+    active: true,
   },
   {
     id: 'FEL-04',
     name: 'Musa Bello',
+    state: 'Kaduna',
     lga: 'Chikun',
     reportsVerified: 98,
+    reportsFlagged: 12,
     trainingComplete: false,
     avatarInitials: 'MB',
     phone: '+234 813 555 0271',
     email: 'musa.bello@yapd4africa.org',
     joinedDate: '2026-01-15',
+    active: true,
   },
   {
     id: 'FEL-05',
     name: 'Hauwa Ibrahim',
+    state: 'Kaduna',
     lga: 'Giwa',
     reportsVerified: 87,
+    reportsFlagged: 9,
     trainingComplete: true,
     avatarInitials: 'HI',
     phone: '+234 815 555 0309',
     email: 'hauwa.ibrahim@yapd4africa.org',
     joinedDate: '2026-01-22',
+    active: true,
   },
   {
     id: 'FEL-06',
     name: 'Ibrahim Sani',
+    state: 'Kaduna',
     lga: 'Sabon Gari',
     reportsVerified: 64,
+    reportsFlagged: 7,
     trainingComplete: false,
     avatarInitials: 'IS',
     phone: '+234 816 555 0355',
     email: 'ibrahim.sani@yapd4africa.org',
     joinedDate: '2026-02-04',
-  },
-]
-
-export const manifestos: Manifesto[] = [
-  {
-    id: 'MAN-01',
-    party: 'PDP',
-    candidate: 'Sen. Yakubu Danja',
-    color: '#D64545',
-    summaryEn: 'Focus on youth employment, road infrastructure, and healthcare access across all 23 LGAs.',
-    summaryHa: 'Mayar da hankali kan aikin yi ga matasa, hanyoyi, da samun kiwon lafiya a duk kananan hukumomi 23.',
-    audioDuration: '2:14',
-  },
-  {
-    id: 'MAN-02',
-    party: 'APC',
-    candidate: 'Hon. Zainab Kabir',
-    color: '#0F7A4E',
-    summaryEn: 'Continuation of the water and electrification projects, plus agricultural subsidies for smallholder farmers.',
-    summaryHa: 'Ci gaba da ayyukan ruwa da wutar lantarki, da tallafin noma ga manoma.',
-    audioDuration: '1:58',
-  },
-  {
-    id: 'MAN-03',
-    party: 'LP',
-    candidate: 'Dr. Chidi Eze',
-    color: '#2E7DD1',
-    summaryEn: 'Anti-corruption reforms, transparent budgeting, and investment in digital literacy programs.',
-    summaryHa: 'Gyara yaki da cin hanci, tsarin kasafin kudi mai gaskiya, da zuba jari a fasahar dijital.',
-    audioDuration: '2:31',
+    active: true,
   },
 ]
 
@@ -385,23 +519,4 @@ export const pollingUnitFinder = [
   { lga: 'Chikun', units: 68 },
   { lga: 'Kagarko', units: 41 },
   { lga: 'Igabi', units: 95 },
-]
-
-export const faqs = [
-  {
-    q: 'How do I find my polling unit?',
-    a: 'Use the Polling Unit Finder on this page, or send your address via WhatsApp to receive your nearest unit.',
-  },
-  {
-    q: 'What do I do if I witness an electoral issue?',
-    a: 'Send a WhatsApp voice note describing what you saw. You can remain anonymous. Our team verifies and routes reports to the right authority.',
-  },
-  {
-    q: 'What identification do I need to vote?',
-    a: 'Bring your Permanent Voter Card (PVC). No other ID is accepted at the polling unit.',
-  },
-  {
-    q: 'How can I tell if information I received is false?',
-    a: 'Check the Alerts page for confirmed disinformation, or forward the message to our WhatsApp line for a fellow to verify.',
-  },
 ]

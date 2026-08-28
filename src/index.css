@@ -1,32 +1,42 @@
 @import 'tailwindcss';
 @import 'leaflet/dist/leaflet.css';
+@import './styles/design-tokens.css';
 
+/*
+ * Tailwind theme aliases below resolve to the Kuri'a Design System's own
+ * custom properties (design-tokens.css) rather than hardcoded hex, so the
+ * app inherits its palette, type scale, and light/dark behavior from the
+ * design system as a single source of truth. Component code still uses the
+ * same Tailwind classes (bg-tertiary, text-primary, rounded-lg, etc.) — only
+ * what those classes resolve to has changed.
+ */
 @theme {
-  --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Unica One', 'Inter', system-ui, sans-serif;
-  --font-h1: 'Archivo', 'Inter', system-ui, sans-serif;
-  --font-label: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-sans: var(--global-typography-fontFamily-body);
+  --font-display: var(--global-typography-fontFamily-heading);
+  --font-h1: var(--global-typography-fontFamily-heading);
+  --font-label: var(--global-typography-fontFamily-mono);
 
-  --color-primary: #0d2234;
-  --color-secondary: #5a7589;
-  --color-tertiary: #2e8fc4;
-  --color-tertiary-dark: #226f9c;
-  --color-danger: #d64545;
-  --color-success: #22a559;
-  --color-success-dark: #198a47;
-  --color-neutral: #e8edf2;
-  --color-surface: #f6f9fc;
-  --color-on-primary: #f6f9fc;
+  --color-primary: var(--token-color-text-primary);
+  --color-secondary: var(--token-color-text-secondary);
+  --color-tertiary: var(--token-color-bg-primary);
+  --color-tertiary-dark: var(--token-color-bg-primary-hover);
+  --color-danger: var(--token-color-bg-error);
+  --color-success: var(--token-color-bg-success);
+  --color-success-dark: var(--global-color-success-700);
+  --color-warning: var(--token-color-text-warning);
+  --color-neutral: var(--token-color-bg-page);
+  --color-surface: var(--token-color-bg-surface);
+  --color-on-primary: var(--token-color-text-on-primary);
 
   /* Fixed dark chrome (sidebar, footer, avatars) — does not flip with theme */
-  --color-chrome: #0d2234;
-  --color-on-chrome: #f6f9fc;
+  --color-chrome: var(--global-color-neutral-900);
+  --color-on-chrome: var(--global-color-neutral-0);
 
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 2px;
-  --radius-xl: 2px;
-  --radius-2xl: 2px;
+  --radius-sm: var(--token-radius-sm);
+  --radius-md: var(--token-radius-md);
+  --radius-lg: var(--token-radius-lg);
+  --radius-xl: var(--token-radius-xl);
+  --radius-2xl: var(--global-border-radius-2xl);
 }
 
 :root {
@@ -36,15 +46,6 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --color-primary: #e7ecf2;
-  --color-secondary: #8ca0b3;
-  --color-tertiary: #4fa8da;
-  --color-tertiary-dark: #6fbce4;
-  --color-danger: #e2685f;
-  --color-success: #3fbe72;
-  --color-success-dark: #55cf85;
-  --color-neutral: #0b1622;
-  --color-surface: #111e2e;
 }
 
 * {
@@ -113,4 +114,34 @@ textarea:focus-visible,
 
 .leaflet-container {
   font-family: var(--font-sans);
+}
+
+/* Leaflet ships hardcoded light-theme popup chrome — rebind it to our tokens
+   so it follows the app's light/dark theme instead of always being white. */
+.leaflet-popup-content-wrapper {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border-radius: var(--radius-lg);
+}
+
+.leaflet-popup-tip {
+  background: var(--color-surface);
+}
+
+.leaflet-popup-close-button {
+  color: var(--color-secondary) !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: var(--color-primary) !important;
+}
+
+@keyframes waveform-pulse {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+  }
+  50% {
+    transform: scaleY(1);
+  }
 }

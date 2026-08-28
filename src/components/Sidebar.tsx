@@ -6,7 +6,6 @@ import {
   Map,
   ShieldAlert,
   Users,
-  GraduationCap,
   Settings,
   X,
   ChevronsLeft,
@@ -19,7 +18,6 @@ const items = [
   { to: '/map', label: 'Map', icon: Map },
   { to: '/alerts', label: 'Alerts', icon: ShieldAlert },
   { to: '/fellows', label: 'Fellows', icon: Users },
-  { to: '/voter-education', label: 'Voter Ed', icon: GraduationCap },
   { to: '/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -39,7 +37,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
   return (
     <aside
-      className={`flex h-full shrink-0 flex-col bg-chrome text-on-chrome transition-[width] duration-200 ${
+      className={`flex h-full shrink-0 flex-col border-r border-secondary/30 bg-surface text-primary transition-[width] duration-200 ${
         isCollapsed ? 'w-20' : 'w-64'
       }`}
     >
@@ -55,7 +53,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="flex h-11 w-11 items-center justify-center rounded-lg text-white/70 hover:bg-white/10 md:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-secondary hover:bg-neutral md:hidden"
           >
             <X size={20} />
           </button>
@@ -65,7 +63,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             type="button"
             onClick={toggleCollapsed}
             aria-label="Collapse sidebar"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-white/70 hover:bg-white/10"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-secondary hover:bg-neutral"
           >
             <ChevronsLeft size={18} />
           </button>
@@ -77,7 +75,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           type="button"
           onClick={toggleCollapsed}
           aria-label="Expand sidebar"
-          className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-lg text-white/70 hover:bg-white/10"
+          className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-lg text-secondary hover:bg-neutral"
         >
           <ChevronsRight size={18} />
         </button>
@@ -92,9 +90,9 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             title={isCollapsed ? label : undefined}
             aria-label={isCollapsed ? label : undefined}
             className={({ isActive }) =>
-              `flex min-h-[44px] items-center gap-3 rounded-lg text-sm font-medium text-white transition-colors ${
+              `flex min-h-[44px] items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
                 isCollapsed ? 'justify-center px-0' : 'px-3'
-              } ${isActive ? 'bg-tertiary' : 'hover:bg-white/10'}`
+              } ${isActive ? 'bg-tertiary text-white' : 'text-primary hover:bg-neutral'}`
             }
           >
             <Icon size={18} aria-hidden="true" />
@@ -103,7 +101,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         ))}
       </nav>
       {!isCollapsed && (
-        <div className="px-5 py-5 text-xs text-white/40">YAPD4Africa &middot; Kuri&apos;a v1.0</div>
+        <div className="px-5 py-5 text-xs text-secondary">YAPD4Africa &middot; Kuri&apos;a v1.0</div>
       )}
     </aside>
   )

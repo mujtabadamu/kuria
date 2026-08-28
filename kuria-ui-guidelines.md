@@ -1,5 +1,10 @@
 # Kuri'a AI-Monitor — UI Design Guidelines
 
+> **Colors, type, and shape below are superseded** — the app now runs on
+> [Kuria-Design-System](../Kuria-Design-System/README.md) (green accent, Outfit
+> headings, rounded corners), see [admin.md](../admin.md). Layout, routes, and
+> per-page content described here are still current.
+
 A reference guide for building the Kuri'a Electoral Integrity Dashboard on top of your existing React + Vite app. This covers brand colors, typography, the route map, and what each page should contain and look like. No code — just the blueprint.
 
 This system follows **design.md ("Architect Blueprint")**: a flat, single-accent design language. It supersedes the previous "official but human" civic-tech guidelines — notably the 18px low-literacy body-text minimum and the multi-color (green/amber/red) status system have both been replaced per that spec.

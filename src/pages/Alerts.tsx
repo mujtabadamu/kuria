@@ -12,6 +12,12 @@ const statusLabel: Record<DisinfoAlert['status'], string> = {
   dismissed: 'Dismissed',
 }
 
+const severityConfig: Record<DisinfoAlert['severity'], { label: string; classes: string }> = {
+  high: { label: 'High', classes: 'bg-danger/10 text-danger' },
+  medium: { label: 'Medium', classes: 'bg-warning/10 text-warning' },
+  low: { label: 'Low', classes: 'bg-success/10 text-success' },
+}
+
 const statusFilters: StatusOption[] = [
   { label: 'All statuses', value: 'all' },
   { label: 'Under review', value: 'under_review' },
@@ -37,42 +43,39 @@ export function Alerts() {
 
   return (
     <div className="space-y-4">
-      <div className="flex min-h-[44px] w-full max-w-sm items-center gap-2 rounded-full border border-secondary/30 bg-surface px-4">
-        <Search size={16} className="text-secondary" aria-hidden="true" />
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search alerts, source, pattern..."
-          className="w-full bg-transparent text-sm outline-none placeholder:text-secondary"
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex min-h-[44px] w-full max-w-sm items-center gap-2 rounded-full border border-secondary/30 bg-surface px-4 sm:w-auto">
+          <Search size={16} className="text-secondary" aria-hidden="true" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search alerts, source, pattern..."
+            className="w-full bg-transparent text-sm outline-none placeholder:text-secondary"
+          />
+        </div>
+
+        <Select<StatusOption, false>
+          aria-label="Filter by status"
+          className="w-full sm:w-52"
+          styles={selectStyles}
+          options={statusFilters}
+          value={statusFilters.find((f) => f.value === status)}
+          onChange={(option) => setStatus(option ? option.value : 'all')}
+          isSearchable={false}
         />
       </div>
 
-      <Select<StatusOption, false>
-        aria-label="Filter by status"
-        className="w-full sm:w-52"
-        styles={selectStyles}
-        options={statusFilters}
-        value={statusFilters.find((f) => f.value === status)}
-        onChange={(option) => setStatus(option ? option.value : 'all')}
-        isSearchable={false}
-      />
-
       <div className="space-y-4">
         {filtered.map((alert) => (
-          <div
-            key={alert.id}
-            className={`rounded-2xl border-l-4 bg-surface p-5 shadow-sm ${
-              alert.status === 'confirmed' ? 'border-l-danger' : 'border-l-secondary'
-            }`}
-          >
+          <div key={alert.id} className="rounded-2xl border border-secondary/30 bg-surface p-5 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h3 className="text-base font-bold text-primary">{alert.title}</h3>
                 <p className="mt-1 text-sm text-secondary">{alert.contentPreview}</p>
               </div>
               {alert.status === 'confirmed' ? (
-                <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-danger px-3 py-1 text-sm font-semibold text-white">
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-danger/10 px-3 py-1 text-sm font-semibold text-danger">
                   <Flag size={14} />
                   Confirmed disinformation
                 </span>
@@ -93,9 +96,13 @@ export function Alerts() {
               <span>
                 <strong className="text-primary">Flagged by:</strong> {alert.flaggedBy}
               </span>
-              <span>
-                <strong className="text-primary">Severity:</strong>{' '}
-                <span className="capitalize">{alert.severity}</span>
+              <span className="flex items-center gap-2">
+                <strong className="text-primary">Severity:</strong>
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${severityConfig[alert.severity].classes}`}
+                >
+                  {severityConfig[alert.severity].label}
+                </span>
               </span>
             </div>
           </div>
