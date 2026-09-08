@@ -18,20 +18,25 @@ export function FellowProfile() {
   const { currentUser, logout } = useAuth()
   const [updateUser, { isLoading: isSaving }] = useUpdateUserMutation()
   const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
   const [syncedUserId, setSyncedUserId] = useState<number | null>(null)
   const [saved, setSaved] = useState(false)
 
-  // Derived-during-render sync (not an effect): seed `name` once from the
-  // freshly-loaded user, without re-running on every render or clobbering
-  // in-progress edits on refetches.
+  // Derived-during-render sync (not an effect): seed `name`/`phone` once from
+  // the freshly-loaded user, without re-running on every render or
+  // clobbering in-progress edits on refetches.
   if (currentUser && currentUser.id !== syncedUserId) {
     setSyncedUserId(currentUser.id)
     setName(currentUser.full_name)
+    setPhone(currentUser.phone ?? '')
   }
 
   async function handleSave() {
     if (!currentUser) return
-    await updateUser({ userId: currentUser.id, userUpdate: { full_name: name } }).unwrap()
+    await updateUser({
+      userId: currentUser.id,
+      userUpdate: { full_name: name, phone: phone.trim() || null },
+    }).unwrap()
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
@@ -87,10 +92,9 @@ export function FellowProfile() {
             </label>
             <input
               id="phone"
-              value="Not available"
-              disabled
-              title="The API doesn't collect a phone number for users yet."
-              className="mt-1.5 min-h-[44px] w-full cursor-not-allowed rounded-lg border border-secondary/30 bg-neutral px-3 text-base text-secondary outline-none"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="mt-1.5 min-h-[44px] w-full rounded-lg border border-secondary/30 px-3 text-base outline-none focus:border-tertiary"
             />
           </div>
         </div>

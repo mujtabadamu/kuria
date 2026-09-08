@@ -11,9 +11,14 @@ export function useReports() {
   const [lga, setLga] = useState('all')
   const [query, setQuery] = useState('')
   const [skip, setSkip] = useState(0)
+  // Server-side per frontend-api.md: "admins and verification leads can
+  // filter across assignees" — fellows are auto-scoped to their own
+  // assignments by the backend regardless of this filter.
+  const [assignedTo, setAssignedToRaw] = useState<number | 'all'>('all')
 
   const { data, isLoading, isFetching, isError, refetch } = useListReportsQuery({
     status: status === 'all' ? undefined : status,
+    assignedTo: assignedTo === 'all' ? undefined : assignedTo,
     skip,
     limit: REPORTS_PAGE_SIZE,
   })
@@ -58,6 +63,11 @@ export function useReports() {
     setSkip(0)
   }
 
+  function setAssignedTo(next: number | 'all') {
+    setAssignedToRaw(next)
+    setSkip(0)
+  }
+
   function setPage(page: number) {
     setSkip(page * REPORTS_PAGE_SIZE)
   }
@@ -74,6 +84,8 @@ export function useReports() {
     lga,
     setLga,
     lgaOptions,
+    assignedTo,
+    setAssignedTo,
     query,
     setQuery,
     isLoading,

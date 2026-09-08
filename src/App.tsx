@@ -15,7 +15,6 @@ import { Alerts } from './pages/Alerts'
 import { Fellows } from './pages/Fellows'
 import { FellowDashboard } from './pages/FellowDashboard'
 import { FellowReports } from './pages/FellowReports'
-import { FellowNewReport } from './pages/FellowNewReport'
 import { FellowProfile } from './pages/FellowProfile'
 import { About } from './pages/About'
 import { Settings } from './pages/Settings'
@@ -48,7 +47,6 @@ function App() {
                 <Route path="/fellow" element={<FellowDashboard />} />
                 <Route path="/fellow/reports" element={<FellowReports />} />
                 <Route path="/fellow/reports/:id" element={<ReportDetail />} />
-                <Route path="/fellow/new" element={<FellowNewReport />} />
                 <Route path="/fellow/profile" element={<FellowProfile />} />
               </Route>
             </Routes>

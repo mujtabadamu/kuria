@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
-import { ArrowLeft, MapPin, Clock, Fingerprint, History } from 'lucide-react'
+import { ArrowLeft, MapPin, Clock, Fingerprint, History, Paperclip, Play } from 'lucide-react'
 import { StatusBadge } from '../components/StatusBadge'
 import { LoadingState, ErrorState, EmptyState } from '../components/QueryState'
 import { useReport } from '../hooks/useReport'
@@ -9,6 +9,70 @@ import { useUsers } from '../hooks/useUsers'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../lib/useToast'
 import { REPORT_STATUS_CONFIG } from '../lib/reportStatus'
+import { useListReportEvidenceQuery, useGetReportMediaUrlQuery, type ReportMediaRead } from '../api/kuria'
+
+function MediaItem({ publicRef, media }: { publicRef: string; media: ReportMediaRead }) {
+  const [requested, setRequested] = useState(false)
+  const { data, isFetching, isError } = useGetReportMediaUrlQuery(
+    { publicRef, wamMediaId: media.wam_media_id },
+    { skip: !requested },
+  )
+  const isAudio = !media.mime_type || media.mime_type.startsWith('audio/')
+
+  return (
+    <div className="rounded-lg border border-secondary/30 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm text-primary">
+          {media.mime_type ?? 'Unknown type'}
+          <span className="text-secondary"> · {new Date(media.created_at).toLocaleString()}</span>
+        </p>
+        {!requested && (
+          <button
+            type="button"
+            onClick={() => setRequested(true)}
+            className="flex min-h-[32px] items-center gap-1 rounded-lg border border-secondary/30 px-3 text-xs font-semibold text-primary hover:bg-neutral"
+          >
+            <Play size={12} />
+            Load
+          </button>
+        )}
+      </div>
+      {requested && isFetching && <p className="mt-2 text-xs text-secondary">Loading…</p>}
+      {requested && isError && <p className="mt-2 text-xs text-danger">Couldn't load this media.</p>}
+      {requested && data && isAudio && <audio controls src={data.url} className="mt-2 w-full" />}
+      {requested && data && !isAudio && (
+        <a
+          href={data.url}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-2 inline-block text-sm font-semibold text-tertiary hover:underline"
+        >
+          Open media →
+        </a>
+      )}
+    </div>
+  )
+}
+
+function EvidenceList({ publicRef }: { publicRef: string }) {
+  const { data, isLoading, isError } = useListReportEvidenceQuery({ publicRef })
+
+  if (isLoading) return <p className="text-sm text-secondary">Loading evidence…</p>
+  if (isError) return <p className="text-sm text-danger">Couldn't load evidence.</p>
+  if (!data || data.length === 0) return <p className="text-sm text-secondary">No evidence added yet.</p>
+
+  return (
+    <ul className="space-y-2">
+      {data.map((entry) => (
+        <li key={entry.id} className="rounded-lg border border-secondary/20 p-2.5 text-sm">
+          <span className="font-semibold capitalize text-primary">{entry.kind}</span>{' '}
+          <span className="break-all text-secondary">{entry.storage_key_or_text}</span>
+          <p className="mt-0.5 text-xs text-secondary">{new Date(entry.created_at).toLocaleString()}</p>
+        </li>
+      ))}
+    </ul>
+  )
+}
 
 export function ReportDetail() {
   const { id } = useParams()
@@ -20,11 +84,6 @@ export function ReportDetail() {
   const { currentUser } = useAuth()
   const { showToast } = useToast()
   const actions = useReportActions(id)
-
-  // Best-effort role gate — the API doesn't publish who's allowed to act on a
-  // report, so this mirrors the app's own role names: reviewers act,
-  // fellows/stakeholder-readers get a read-only view.
-  const canAct = currentUser?.role === 'admin' || currentUser?.role === 'verification_lead'
 
   const [reason, setReason] = useState('')
   const [decisionTarget, setDecisionTarget] = useState<'verified' | 'rejected'>('verified')
@@ -62,6 +121,17 @@ export function ReportDetail() {
 
   const assignedUser = users.find((u) => u.id === report.assigned_to)
 
+  // Per backend/frontend-api.md's permissions table: admin/verification_lead
+  // can do everything (assign, decide, and the rest); a fellow can act on a
+  // report only once it's assigned to them (recommend, escalate, evidence,
+  // clarification, correct-transcript) but can't assign or make the final
+  // decision. Anyone else (e.g. a fellow viewing an unassigned report,
+  // stakeholder_reader) gets read-only.
+  const isManager = currentUser?.role === 'admin' || currentUser?.role === 'verification_lead'
+  const isAssignedFellow = currentUser?.role === 'fellow' && report.assigned_to === currentUser?.id
+  const canContribute = isManager || isAssignedFellow
+  const canManage = isManager
+
   return (
     <div>
       <Link
@@ -80,10 +150,17 @@ export function ReportDetail() {
               <StatusBadge status={report.status} />
             </div>
 
-            <p className="mt-3 rounded-lg bg-warning/10 px-3 py-2 text-xs text-warning">
-              This report's original voice/media recording can't be shown here yet — the API doesn't
-              expose which WhatsApp media items (if any) belong to a report.
-            </p>
+            {report.media && report.media.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <p className="label-text flex items-center gap-1.5 text-secondary">
+                  <Paperclip size={12} aria-hidden="true" />
+                  Media
+                </p>
+                {report.media.map((media) => (
+                  <MediaItem key={media.wam_media_id} publicRef={report.public_ref} media={media} />
+                ))}
+              </div>
+            )}
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <div>
@@ -100,7 +177,7 @@ export function ReportDetail() {
               </div>
             </div>
 
-            {canAct && (
+            {canContribute && (
               <div className="mt-5 border-t border-secondary/20 pt-4">
                 <label htmlFor="correct-transcript" className="text-sm font-semibold text-primary">
                   Correct transcript
@@ -128,6 +205,14 @@ export function ReportDetail() {
                 </button>
               </div>
             )}
+          </div>
+
+          <div className="rounded-2xl border border-secondary/30 bg-surface p-6">
+            <div className="mb-3 flex items-center gap-2">
+              <Paperclip size={16} className="text-secondary" aria-hidden="true" />
+              <h3 className="text-sm font-bold text-primary">Evidence</h3>
+            </div>
+            <EvidenceList publicRef={report.public_ref} />
           </div>
 
           <div className="rounded-2xl border border-secondary/30 bg-surface p-6">
@@ -161,7 +246,11 @@ export function ReportDetail() {
                         </span>
                       </p>
                       {entry.reason && <p className="text-secondary">{entry.reason}</p>}
-                      <p className="text-xs text-secondary">{new Date(entry.created_at).toLocaleString()}</p>
+                      <p className="text-xs text-secondary">
+                        {new Date(entry.created_at).toLocaleString()}
+                        {entry.actor_user_id != null &&
+                          ` · ${users.find((u) => u.id === entry.actor_user_id)?.full_name ?? `User #${entry.actor_user_id}`}`}
+                      </p>
                     </div>
                   </li>
                 ))}
@@ -225,44 +314,46 @@ export function ReportDetail() {
               </div>
             </dl>
 
-            {isFellow || !canAct ? (
+            {!canContribute ? (
               <p className="rounded-lg bg-secondary/10 px-3 py-2 text-sm text-secondary">
-                {isFellow
-                  ? "You've reported this. A reviewer will assess and verify it."
+                {currentUser?.role === 'fellow'
+                  ? "This report isn't assigned to you, so you have read-only access."
                   : 'You have read-only access to this report.'}
               </p>
             ) : (
               <div className="space-y-5 border-t border-secondary/20 pt-4">
-                <div>
-                  <label htmlFor="assignee" className="text-sm font-semibold text-primary">
-                    Assign to
-                  </label>
-                  <div className="mt-1.5 flex gap-2">
-                    <select
-                      id="assignee"
-                      value={assigneeId}
-                      onChange={(e) => setAssigneeId(e.target.value)}
-                      className="min-h-[44px] flex-1 rounded-lg border border-secondary/30 px-3 text-sm outline-none focus:border-tertiary"
-                    >
-                      <option value="">Select a reviewer…</option>
-                      {users.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.full_name} ({u.role})
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      disabled={!assigneeId || actions.isAssigning}
-                      onClick={() =>
-                        runAction(() => actions.assignTo(Number(assigneeId)), 'Report assigned.')
-                      }
-                      className="min-h-[44px] shrink-0 rounded-lg border border-secondary/30 px-3 text-sm font-semibold text-primary hover:bg-neutral disabled:opacity-50"
-                    >
-                      Assign
-                    </button>
+                {canManage && (
+                  <div>
+                    <label htmlFor="assignee" className="text-sm font-semibold text-primary">
+                      Assign to
+                    </label>
+                    <div className="mt-1.5 flex gap-2">
+                      <select
+                        id="assignee"
+                        value={assigneeId}
+                        onChange={(e) => setAssigneeId(e.target.value)}
+                        className="min-h-[44px] flex-1 rounded-lg border border-secondary/30 px-3 text-sm outline-none focus:border-tertiary"
+                      >
+                        <option value="">Select a reviewer…</option>
+                        {users.map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {u.full_name} ({u.role})
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        disabled={!assigneeId || actions.isAssigning}
+                        onClick={() =>
+                          runAction(() => actions.assignTo(Number(assigneeId)), 'Report assigned.')
+                        }
+                        className="min-h-[44px] shrink-0 rounded-lg border border-secondary/30 px-3 text-sm font-semibold text-primary hover:bg-neutral disabled:opacity-50"
+                      >
+                        Assign
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div>
                   <label htmlFor="reason" className="text-sm font-semibold text-primary">
@@ -302,7 +393,7 @@ export function ReportDetail() {
                   </button>
                 </div>
 
-                {currentUser?.role === 'admin' && (
+                {canManage && (
                   <button
                     type="button"
                     disabled={!reason.trim() || actions.isDeciding}
@@ -386,9 +477,6 @@ export function ReportDetail() {
                   >
                     Add evidence
                   </button>
-                  <p className="mt-1 text-xs text-secondary">
-                    The API has no endpoint to list a report's existing evidence — only to add more.
-                  </p>
                 </div>
               </div>
             )}

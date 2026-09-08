@@ -27,7 +27,8 @@ const config: ConfigFile = {
     { pattern: 'getReportHistoryApiV1ReportsPublicRefHistoryGet', providesTags: ['Report'] },
     { pattern: 'createReportApiApiV1ReportsPost', invalidatesTags: ['ReportList'] },
     { pattern: 'assignApiApiV1ReportsPublicRefAssignPatch', invalidatesTags: ['Report', 'ReportList'] },
-    { pattern: 'addEvidenceApiApiV1ReportsPublicRefEvidencePost', invalidatesTags: ['Report'] },
+    { pattern: 'addEvidenceApiApiV1ReportsPublicRefEvidencePost', invalidatesTags: ['Report', 'Evidence'] },
+    { pattern: 'listEvidenceApiApiV1ReportsPublicRefEvidenceGet', providesTags: ['Evidence'] },
     {
       pattern: 'correctTranscriptApiV1ReportsPublicRefCorrectTranscriptPatch',
       invalidatesTags: ['Report'],
@@ -43,6 +44,10 @@ const config: ConfigFile = {
     { pattern: 'createUserApiV1AuthUsersPost', invalidatesTags: ['User'] },
     { pattern: 'updateUserApiV1AuthUsersUserIdPatch', invalidatesTags: ['User'] },
     { pattern: 'metricsApiV1AnalyticsMetricsGet', providesTags: ['Analytics'] },
+    { pattern: 'listAlertsApiV1AlertsGet', providesTags: ['AlertList'] },
+    { pattern: 'getAlertApiV1AlertsAlertIdGet', providesTags: ['Alert'] },
+    { pattern: 'createAlertApiV1AlertsPost', invalidatesTags: ['AlertList'] },
+    { pattern: 'updateAlertApiV1AlertsAlertIdPatch', invalidatesTags: ['Alert', 'AlertList'] },
   ],
 }
 

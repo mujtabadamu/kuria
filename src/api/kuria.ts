@@ -3,6 +3,7 @@
 // that keeps every consumer insulated from FastAPI's verbose auto operationIds,
 // and safe across `yarn api:codegen` re-runs.
 import {
+  useLoginApiV1AuthLoginPostMutation as useLoginMutation,
   useMeApiV1AuthMeGetQuery as useGetMeQuery,
   useCreateUserApiV1AuthUsersPostMutation as useCreateUserMutation,
   useListUsersApiV1AuthUsersGetQuery as useListUsersQuery,
@@ -15,6 +16,7 @@ import {
   useGetReportHistoryApiV1ReportsPublicRefHistoryGetQuery as useGetReportHistoryQuery,
   useAssignApiApiV1ReportsPublicRefAssignPatchMutation as useAssignReportMutation,
   useAddEvidenceApiApiV1ReportsPublicRefEvidencePostMutation as useAddReportEvidenceMutation,
+  useListEvidenceApiApiV1ReportsPublicRefEvidenceGetQuery as useListReportEvidenceQuery,
   useCorrectTranscriptApiV1ReportsPublicRefCorrectTranscriptPatchMutation as useCorrectReportTranscriptMutation,
   useRequestClarificationApiV1ReportsPublicRefClarificationPostMutation as useRequestReportClarificationMutation,
   useRecommendApiApiV1ReportsPublicRefRecommendPostMutation as useRecommendReportDecisionMutation,
@@ -24,13 +26,15 @@ import {
   useStreamMediaApiV1ReportsPublicRefMediaWamMediaIdStreamGetQuery as useStreamReportMediaQuery,
   useMetricsApiV1AnalyticsMetricsGetQuery as useGetAnalyticsMetricsQuery,
   useExportDataApiV1AnalyticsExportGetQuery as useExportAnalyticsDataQuery,
+  useListAlertsApiV1AlertsGetQuery as useListAlertsQuery,
+  useCreateAlertApiV1AlertsPostMutation as useCreateAlertMutation,
+  useGetAlertApiV1AlertsAlertIdGetQuery as useGetAlertQuery,
+  useUpdateAlertApiV1AlertsAlertIdPatchMutation as useUpdateAlertMutation,
   useHealthCheckApiV1HealthGetQuery as useHealthCheckQuery,
 } from './generated/kuriaApi'
 
-export { useLoginMutation } from './authOverrides'
-export type { LoginCredentials } from './authOverrides'
-
 export {
+  useLoginMutation,
   useGetMeQuery,
   useCreateUserMutation,
   useListUsersQuery,
@@ -43,6 +47,7 @@ export {
   useGetReportHistoryQuery,
   useAssignReportMutation,
   useAddReportEvidenceMutation,
+  useListReportEvidenceQuery,
   useCorrectReportTranscriptMutation,
   useRequestReportClarificationMutation,
   useRecommendReportDecisionMutation,
@@ -52,6 +57,10 @@ export {
   useStreamReportMediaQuery,
   useGetAnalyticsMetricsQuery,
   useExportAnalyticsDataQuery,
+  useListAlertsQuery,
+  useCreateAlertMutation,
+  useGetAlertQuery,
+  useUpdateAlertMutation,
   useHealthCheckQuery,
 }
 
@@ -62,11 +71,13 @@ export type {
   UserRead,
   UserCreate,
   UserUpdate,
+  UserListResponse,
   ReportStatus,
   ReportRead,
   ReportListResponse,
   ReportCreate,
   ReportAnonymized,
+  ReportMediaRead,
   PollingUnitRead,
   StatusHistoryRead,
   EvidenceRead,
@@ -74,12 +85,21 @@ export type {
   ClarificationRead,
   ClarificationCreate,
   StatusTransition,
+  MediaUrlResponse,
+  MetricsResponse,
+  ExportRow,
+  AlertRead,
+  AlertListResponse,
+  AlertCreate,
+  AlertUpdate,
+  HealthResponse,
   ValidationError,
   HttpValidationError,
 } from './generated/kuriaApi'
 
 // Per-operation request/response arg types, re-exported under matching clean names.
 export type {
+  LoginApiV1AuthLoginPostApiArg as LoginArg,
   LoginApiV1AuthLoginPostApiResponse as LoginResponse,
   CreateUserApiV1AuthUsersPostApiArg as CreateUserArg,
   ListUsersApiV1AuthUsersGetApiArg as ListUsersArg,
@@ -89,12 +109,16 @@ export type {
   SearchPusApiV1ReportsPollingUnitsSearchGetApiArg as SearchPollingUnitsArg,
   AssignApiApiV1ReportsPublicRefAssignPatchApiArg as AssignReportArg,
   AddEvidenceApiApiV1ReportsPublicRefEvidencePostApiArg as AddReportEvidenceArg,
+  ListEvidenceApiApiV1ReportsPublicRefEvidenceGetApiArg as ListReportEvidenceArg,
   CorrectTranscriptApiV1ReportsPublicRefCorrectTranscriptPatchApiArg as CorrectReportTranscriptArg,
   RequestClarificationApiV1ReportsPublicRefClarificationPostApiArg as RequestReportClarificationArg,
   RecommendApiApiV1ReportsPublicRefRecommendPostApiArg as RecommendReportDecisionArg,
   DecideApiApiV1ReportsPublicRefDecidePostApiArg as DecideReportArg,
   EscalateApiApiV1ReportsPublicRefEscalatePostApiArg as EscalateReportArg,
   ExportDataApiV1AnalyticsExportGetApiArg as ExportAnalyticsDataArg,
+  ListAlertsApiV1AlertsGetApiArg as ListAlertsArg,
+  CreateAlertApiV1AlertsPostApiArg as CreateAlertArg,
+  UpdateAlertApiV1AlertsAlertIdPatchApiArg as UpdateAlertArg,
 } from './generated/kuriaApi'
 
 export { getAuthToken, setAuthToken, subscribeAuthToken, baseApi } from './baseApi'

@@ -5,7 +5,11 @@ const injectedRtkApi = api.injectEndpoints({
       LoginApiV1AuthLoginPostApiResponse,
       LoginApiV1AuthLoginPostApiArg
     >({
-      query: () => ({ url: `/api/v1/auth/login`, method: "POST" }),
+      query: (queryArg) => ({
+        url: `/api/v1/auth/login`,
+        method: "POST",
+        body: queryArg.body,
+      }),
     }),
     meApiV1AuthMeGet: build.query<
       MeApiV1AuthMeGetApiResponse,
@@ -134,7 +138,16 @@ const injectedRtkApi = api.injectEndpoints({
         method: "POST",
         body: queryArg.evidenceCreate,
       }),
-      invalidatesTags: ["Report"],
+      invalidatesTags: ["Report", "Evidence"],
+    }),
+    listEvidenceApiApiV1ReportsPublicRefEvidenceGet: build.query<
+      ListEvidenceApiApiV1ReportsPublicRefEvidenceGetApiResponse,
+      ListEvidenceApiApiV1ReportsPublicRefEvidenceGetApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/reports/${queryArg.publicRef}/evidence`,
+      }),
+      providesTags: ["Evidence"],
     }),
     correctTranscriptApiV1ReportsPublicRefCorrectTranscriptPatch:
       build.mutation<
@@ -228,6 +241,50 @@ const injectedRtkApi = api.injectEndpoints({
         },
       }),
     }),
+    listAlertsApiV1AlertsGet: build.query<
+      ListAlertsApiV1AlertsGetApiResponse,
+      ListAlertsApiV1AlertsGetApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/alerts`,
+        params: {
+          status: queryArg.status,
+          severity: queryArg.severity,
+          skip: queryArg.skip,
+          limit: queryArg.limit,
+        },
+      }),
+      providesTags: ["AlertList"],
+    }),
+    createAlertApiV1AlertsPost: build.mutation<
+      CreateAlertApiV1AlertsPostApiResponse,
+      CreateAlertApiV1AlertsPostApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/alerts`,
+        method: "POST",
+        body: queryArg.alertCreate,
+      }),
+      invalidatesTags: ["AlertList"],
+    }),
+    getAlertApiV1AlertsAlertIdGet: build.query<
+      GetAlertApiV1AlertsAlertIdGetApiResponse,
+      GetAlertApiV1AlertsAlertIdGetApiArg
+    >({
+      query: (queryArg) => ({ url: `/api/v1/alerts/${queryArg.alertId}` }),
+      providesTags: ["Alert"],
+    }),
+    updateAlertApiV1AlertsAlertIdPatch: build.mutation<
+      UpdateAlertApiV1AlertsAlertIdPatchApiResponse,
+      UpdateAlertApiV1AlertsAlertIdPatchApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/alerts/${queryArg.alertId}`,
+        method: "PATCH",
+        body: queryArg.alertUpdate,
+      }),
+      invalidatesTags: ["Alert", "AlertList"],
+    }),
     healthCheckApiV1HealthGet: build.query<
       HealthCheckApiV1HealthGetApiResponse,
       HealthCheckApiV1HealthGetApiArg
@@ -240,7 +297,12 @@ const injectedRtkApi = api.injectEndpoints({
 export { injectedRtkApi as kuriaApi };
 export type LoginApiV1AuthLoginPostApiResponse =
   /** status 200 Successful Response */ Token;
-export type LoginApiV1AuthLoginPostApiArg = void;
+export type LoginApiV1AuthLoginPostApiArg = {
+  body: {
+    email: string;
+    password: string;
+  };
+};
 export type MeApiV1AuthMeGetApiResponse =
   /** status 200 Successful Response */ UserRead;
 export type MeApiV1AuthMeGetApiArg = void;
@@ -250,7 +312,7 @@ export type CreateUserApiV1AuthUsersPostApiArg = {
   userCreate: UserCreate;
 };
 export type ListUsersApiV1AuthUsersGetApiResponse =
-  /** status 200 Successful Response */ UserRead[];
+  /** status 200 Successful Response */ UserListResponse;
 export type ListUsersApiV1AuthUsersGetApiArg = {
   skip?: number;
   limit?: number;
@@ -308,6 +370,11 @@ export type AddEvidenceApiApiV1ReportsPublicRefEvidencePostApiArg = {
   publicRef: string;
   evidenceCreate: EvidenceCreate;
 };
+export type ListEvidenceApiApiV1ReportsPublicRefEvidenceGetApiResponse =
+  /** status 200 Successful Response */ EvidenceRead[];
+export type ListEvidenceApiApiV1ReportsPublicRefEvidenceGetApiArg = {
+  publicRef: string;
+};
 export type CorrectTranscriptApiV1ReportsPublicRefCorrectTranscriptPatchApiResponse =
   /** status 200 Successful Response */ ReportRead;
 export type CorrectTranscriptApiV1ReportsPublicRefCorrectTranscriptPatchApiArg =
@@ -340,27 +407,51 @@ export type EscalateApiApiV1ReportsPublicRefEscalatePostApiArg = {
   statusTransition: StatusTransition;
 };
 export type GetMediaUrlApiV1ReportsPublicRefMediaWamMediaIdUrlGetApiResponse =
-  /** status 200 Successful Response */ any;
+  /** status 200 Successful Response */ MediaUrlResponse;
 export type GetMediaUrlApiV1ReportsPublicRefMediaWamMediaIdUrlGetApiArg = {
   publicRef: string;
   wamMediaId: string;
 };
 export type StreamMediaApiV1ReportsPublicRefMediaWamMediaIdStreamGetApiResponse =
-  /** status 200 Successful Response */ any;
+  /** status 200 Audio stream */ Blob;
 export type StreamMediaApiV1ReportsPublicRefMediaWamMediaIdStreamGetApiArg = {
   publicRef: string;
   wamMediaId: string;
 };
 export type MetricsApiV1AnalyticsMetricsGetApiResponse =
-  /** status 200 Successful Response */ any;
+  /** status 200 Successful Response */ MetricsResponse;
 export type MetricsApiV1AnalyticsMetricsGetApiArg = void;
 export type ExportDataApiV1AnalyticsExportGetApiResponse =
-  /** status 200 Successful Response */ any;
+  /** status 200 An anonymized CSV attachment or JSON array, selected by the format query parameter. */ ExportRow[];
 export type ExportDataApiV1AnalyticsExportGetApiArg = {
   format?: string;
 };
+export type ListAlertsApiV1AlertsGetApiResponse =
+  /** status 200 Successful Response */ AlertListResponse;
+export type ListAlertsApiV1AlertsGetApiArg = {
+  status?: ("open" | "reviewing" | "resolved" | "dismissed") | null;
+  severity?: ("low" | "medium" | "high") | null;
+  skip?: number;
+  limit?: number;
+};
+export type CreateAlertApiV1AlertsPostApiResponse =
+  /** status 201 Successful Response */ AlertRead;
+export type CreateAlertApiV1AlertsPostApiArg = {
+  alertCreate: AlertCreate;
+};
+export type GetAlertApiV1AlertsAlertIdGetApiResponse =
+  /** status 200 Successful Response */ AlertRead;
+export type GetAlertApiV1AlertsAlertIdGetApiArg = {
+  alertId: number;
+};
+export type UpdateAlertApiV1AlertsAlertIdPatchApiResponse =
+  /** status 200 Successful Response */ AlertRead;
+export type UpdateAlertApiV1AlertsAlertIdPatchApiArg = {
+  alertId: number;
+  alertUpdate: AlertUpdate;
+};
 export type HealthCheckApiV1HealthGetApiResponse =
-  /** status 200 Successful Response */ any;
+  /** status 200 Successful Response */ HealthResponse;
 export type HealthCheckApiV1HealthGetApiArg = void;
 export type Token = {
   access_token: string;
@@ -373,8 +464,13 @@ export type UserRead = {
   id: number;
   email: string;
   full_name: string;
+  phone?: string | null;
+  lga?: string | null;
+  training_status?: ("not_started" | "in_progress" | "completed") | null;
   role: UserRole;
   is_active: boolean;
+  verified_count?: number;
+  flagged_count?: number;
   created_at: string;
   updated_at: string;
 };
@@ -392,10 +488,22 @@ export type UserCreate = {
   email: string;
   password: string;
   full_name: string;
+  phone?: string | null;
+  lga?: string | null;
+  training_status?: ("not_started" | "in_progress" | "completed") | null;
   role?: UserRole;
+};
+export type UserListResponse = {
+  items: UserRead[];
+  total: number;
+  skip: number;
+  limit: number;
 };
 export type UserUpdate = {
   full_name?: string | null;
+  phone?: string | null;
+  lga?: string | null;
+  training_status?: ("not_started" | "in_progress" | "completed") | null;
   role?: UserRole | null;
   is_active?: boolean | null;
 };
@@ -419,6 +527,11 @@ export type ReportStatus =
   | "rejected"
   | "escalated"
   | "archived";
+export type ReportMediaRead = {
+  wam_media_id: string;
+  mime_type?: string | null;
+  created_at: string;
+};
 export type ReportRead = {
   id: number;
   public_ref: string;
@@ -435,6 +548,7 @@ export type ReportRead = {
   status: ReportStatus;
   urgency?: string | null;
   assigned_to?: number | null;
+  media?: ReportMediaRead[];
   created_at: string;
   updated_at: string;
 };
@@ -445,13 +559,16 @@ export type ReportListResponse = {
   limit: number;
 };
 export type ReportCreate = {
-  reporter_hash: string;
-  transcript?: string | null;
+  /** Existing pseudonymous reporter reference; a unique value is generated when omitted. */
+  reporter_hash?: string | null;
+  /** Incident description for an admin-created fallback report. */
+  transcript: string;
   incident_type?: string | null;
   location_text?: string | null;
   pu_reference?: string | null;
   lat?: number | null;
   lng?: number | null;
+  /** AI confidence from 0 to 1. */
   confidence?: number | null;
   urgency?: string | null;
   intent?: string | null;
@@ -476,6 +593,7 @@ export type StatusHistoryRead = {
 };
 export type EvidenceRead = {
   id: number;
+  uploader_id?: number | null;
   kind: string;
   storage_key_or_text: string;
   created_at: string;
@@ -500,6 +618,79 @@ export type StatusTransition = {
   to_status: ReportStatus;
   reason: string;
 };
+export type MediaUrlResponse = {
+  url: string;
+  expires_in: number;
+  storage_key: string;
+};
+export type MetricsResponse = {
+  total_reports: number;
+  verified_reports: number;
+  active_users: number;
+  lgas_covered: number;
+  by_status: {
+    [key: string]: number;
+  };
+  by_incident_type: {
+    [key: string]: number;
+  };
+  by_state: {
+    [key: string]: number;
+  };
+  by_ward: {
+    [key: string]: number;
+  };
+};
+export type ExportRow = {
+  public_ref: string;
+  incident_type: string | null;
+  status: string;
+  urgency: string | null;
+  location_text: string | null;
+  pu_code: string | null;
+  pu_name: string | null;
+  state: string | null;
+  created_at: string;
+};
+export type AlertRead = {
+  id: number;
+  title: string;
+  description: string;
+  source: string | null;
+  severity: "low" | "medium" | "high";
+  status: "open" | "reviewing" | "resolved" | "dismissed";
+  report_ref: string | null;
+  created_by: number | null;
+  created_at: string;
+  updated_at: string;
+};
+export type AlertListResponse = {
+  items: AlertRead[];
+  total: number;
+  skip: number;
+  limit: number;
+};
+export type AlertCreate = {
+  title: string;
+  description: string;
+  source?: string | null;
+  severity?: "low" | "medium" | "high";
+  report_ref?: string | null;
+};
+export type AlertUpdate = {
+  title?: string | null;
+  description?: string | null;
+  source?: string | null;
+  severity?: ("low" | "medium" | "high") | null;
+  status?: ("open" | "reviewing" | "resolved" | "dismissed") | null;
+  report_ref?: string | null;
+};
+export type HealthResponse = {
+  status: string;
+  database: string;
+  version: string;
+  request_id: string | null;
+};
 export const {
   useLoginApiV1AuthLoginPostMutation,
   useMeApiV1AuthMeGetQuery,
@@ -514,6 +705,7 @@ export const {
   useGetReportHistoryApiV1ReportsPublicRefHistoryGetQuery,
   useAssignApiApiV1ReportsPublicRefAssignPatchMutation,
   useAddEvidenceApiApiV1ReportsPublicRefEvidencePostMutation,
+  useListEvidenceApiApiV1ReportsPublicRefEvidenceGetQuery,
   useCorrectTranscriptApiV1ReportsPublicRefCorrectTranscriptPatchMutation,
   useRequestClarificationApiV1ReportsPublicRefClarificationPostMutation,
   useRecommendApiApiV1ReportsPublicRefRecommendPostMutation,
@@ -523,5 +715,9 @@ export const {
   useStreamMediaApiV1ReportsPublicRefMediaWamMediaIdStreamGetQuery,
   useMetricsApiV1AnalyticsMetricsGetQuery,
   useExportDataApiV1AnalyticsExportGetQuery,
+  useListAlertsApiV1AlertsGetQuery,
+  useCreateAlertApiV1AlertsPostMutation,
+  useGetAlertApiV1AlertsAlertIdGetQuery,
+  useUpdateAlertApiV1AlertsAlertIdPatchMutation,
   useHealthCheckApiV1HealthGetQuery,
 } = injectedRtkApi;

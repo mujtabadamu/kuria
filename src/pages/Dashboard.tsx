@@ -1,77 +1,76 @@
 import { Link } from 'react-router-dom'
-import { FileText, CheckCircle2, ShieldAlert } from 'lucide-react'
+import { FileText, CheckCircle2, Users, MapPinned, ShieldAlert } from 'lucide-react'
 import { MetricCard } from '../components/MetricCard'
 import { ReportRow } from '../components/ReportRow'
 import { ReportMap } from '../components/ReportMap'
 import { LoadingState, ErrorState } from '../components/QueryState'
-import { alerts } from '../data/mockData'
 import { useListReportsQuery } from '../api/kuria'
 import { useAnalyticsMetrics } from '../hooks/useAnalyticsMetrics'
+import { useAlerts } from '../hooks/useAlerts'
+import { REPORT_STATUS_CONFIG } from '../lib/reportStatus'
 
-function humanizeKey(key: string) {
-  return key
-    .replace(/[_-]+/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase())
+function BreakdownList({ title, counts }: { title: string; counts: Record<string, number> }) {
+  const entries = Object.entries(counts)
+    .filter(([, count]) => count > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+  const max = Math.max(1, ...entries.map(([, count]) => count))
+
+  if (entries.length === 0) return null
+
+  return (
+    <div>
+      <p className="label-text text-secondary">{title}</p>
+      <div className="mt-2 space-y-1.5">
+        {entries.map(([key, count]) => (
+          <div key={key} className="flex items-center gap-2 text-sm">
+            <span className="w-28 shrink-0 truncate text-secondary">
+              {REPORT_STATUS_CONFIG[key as keyof typeof REPORT_STATUS_CONFIG]?.label ?? key}
+            </span>
+            <div className="h-2 flex-1 overflow-hidden rounded-full bg-neutral">
+              <div className="h-full rounded-full bg-tertiary" style={{ width: `${(count / max) * 100}%` }} />
+            </div>
+            <span className="w-8 shrink-0 text-right font-semibold tabular-nums text-primary">{count}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export function Dashboard() {
   // Recent reports + map preview: a small unfiltered page of the real list.
   const { data, isLoading, isError, refetch } = useListReportsQuery({ limit: 6 })
-  // `.total` on a `limit: 1` filtered call gives an accurate aggregate count
-  // without walking every page — cheaper and correct, unlike counting a
-  // truncated page client-side.
-  const { data: verifiedTotal } = useListReportsQuery({ status: 'verified', limit: 1 })
-  const { data: allTotal } = useListReportsQuery({ limit: 1 })
   const { metrics, isLoading: isMetricsLoading, isError: isMetricsError } = useAnalyticsMetrics()
+  const { alerts, total: openAlertsTotal } = useAlerts()
 
   const recent = data?.items ?? []
   const recentAlerts = alerts.slice(0, 3)
-  // Only top-level number/string entries render as stat tiles — the response
-  // shape is genuinely unknown (see useAnalyticsMetrics), so this renders
-  // whatever comes back rather than assuming specific field names exist.
-  const metricEntries = metrics
-    ? Object.entries(metrics).filter(
-        (entry): entry is [string, number | string] =>
-          typeof entry[1] === 'number' || typeof entry[1] === 'string',
-      )
-    : []
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <MetricCard label="Total Reports" value={allTotal?.total ?? '—'} icon={FileText} />
-        <MetricCard label="Verified" value={verifiedTotal?.total ?? '—'} icon={CheckCircle2} tone="success" />
-        {/* Alerts feature has no backend endpoint yet — intentionally left on mock data. */}
-        <MetricCard label="Open disinfo alerts" value={alerts.length} icon={ShieldAlert} accent={alerts.length > 0} />
-      </div>
+      {isMetricsLoading ? (
+        <LoadingState label="Loading dashboard metrics…" />
+      ) : isMetricsError ? (
+        <ErrorState description="Couldn't load dashboard metrics." />
+      ) : (
+        metrics && (
+          <>
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              <MetricCard label="Total Reports" value={metrics.total_reports} icon={FileText} />
+              <MetricCard label="Verified" value={metrics.verified_reports} icon={CheckCircle2} tone="success" />
+              <MetricCard label="Active users" value={metrics.active_users} icon={Users} />
+              <MetricCard label="LGAs covered" value={metrics.lgas_covered} icon={MapPinned} />
+            </div>
 
-      <div className="rounded-2xl border border-secondary/30 bg-surface p-5">
-        <h2 className="text-lg font-bold text-primary">Analytics</h2>
-        <p className="mt-1 text-xs text-secondary">
-          The backend doesn't publish a fixed schema for this endpoint yet, so these are rendered from
-          whatever keys it returns.
-        </p>
-        {isMetricsLoading ? (
-          <div className="mt-3">
-            <LoadingState label="Loading analytics…" />
-          </div>
-        ) : isMetricsError ? (
-          <div className="mt-3">
-            <ErrorState description="Couldn't load analytics." />
-          </div>
-        ) : metricEntries.length === 0 ? (
-          <p className="mt-3 text-sm text-secondary">No analytics data returned.</p>
-        ) : (
-          <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {metricEntries.map(([key, value]) => (
-              <div key={key} className="rounded-xl border border-secondary/20 bg-neutral p-4">
-                <p className="label-text text-secondary">{humanizeKey(key)}</p>
-                <p className="mt-1 text-2xl font-bold tabular-nums text-primary">{value}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+            <div className="grid gap-4 rounded-2xl border border-secondary/30 bg-surface p-5 sm:grid-cols-3">
+              <BreakdownList title="By status" counts={metrics.by_status} />
+              <BreakdownList title="By incident type" counts={metrics.by_incident_type} />
+              <BreakdownList title="By state" counts={metrics.by_state} />
+            </div>
+          </>
+        )
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
@@ -92,18 +91,27 @@ export function Dashboard() {
 
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-primary">Recent alerts</h2>
+            <h2 className="flex items-center gap-1.5 text-lg font-bold text-primary">
+              <ShieldAlert size={18} className={openAlertsTotal > 0 ? 'text-danger' : 'text-secondary'} />
+              Recent alerts
+            </h2>
             <Link to="/alerts" className="text-sm font-semibold text-primary hover:text-tertiary hover:underline">
-              View all →
+              View all ({openAlertsTotal}) →
             </Link>
           </div>
           <div className="space-y-3">
-            {recentAlerts.map((alert) => (
-              <div key={alert.id} className="rounded-xl border border-secondary/30 bg-surface p-4 shadow-sm">
-                <p className="text-sm font-semibold text-primary">{alert.title}</p>
-                <p className="mt-1 text-xs text-secondary">{alert.source}</p>
-              </div>
-            ))}
+            {recentAlerts.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-secondary/30 p-4 text-sm text-secondary">
+                No alerts match the current filters.
+              </p>
+            ) : (
+              recentAlerts.map((alert) => (
+                <div key={alert.id} className="rounded-xl border border-secondary/30 bg-surface p-4 shadow-sm">
+                  <p className="text-sm font-semibold text-primary">{alert.title}</p>
+                  <p className="mt-1 text-xs text-secondary">{alert.source ?? 'Unknown source'}</p>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

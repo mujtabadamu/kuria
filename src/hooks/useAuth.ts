@@ -7,9 +7,13 @@ import {
   getAuthToken,
   subscribeAuthToken,
   baseApi,
-  type LoginCredentials,
 } from '../api/kuria'
 import type { AppDispatch } from '../api/store'
+
+export interface LoginCredentials {
+  email: string
+  password: string
+}
 
 export function useAuth() {
   const dispatch = useDispatch<AppDispatch>()
@@ -26,7 +30,7 @@ export function useAuth() {
 
   const login = useCallback(
     async (credentials: LoginCredentials) => {
-      const token = await loginMutation(credentials).unwrap()
+      const token = await loginMutation({ body: credentials }).unwrap()
       setAuthToken(token.access_token)
       return token
     },

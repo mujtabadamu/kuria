@@ -1,5 +1,17 @@
 import { useState } from 'react'
-import { Search, UserPlus, Mail, Calendar, UserX, UserCheck, Eye } from 'lucide-react'
+import {
+  Search,
+  UserPlus,
+  Mail,
+  Calendar,
+  MapPin,
+  Phone,
+  BadgeCheck,
+  GraduationCap,
+  UserX,
+  UserCheck,
+  Eye,
+} from 'lucide-react'
 import { useUsers } from '../hooks/useUsers'
 import { Modal } from '../components/Modal'
 import { DropdownMenu } from '../components/DropdownMenu'
@@ -8,11 +20,39 @@ import { LoadingState, EmptyState, ErrorState } from '../components/QueryState'
 import { useToast } from '../lib/useToast'
 import type { UserRead, UserRole } from '../api/kuria'
 
+type TrainingStatus = NonNullable<UserRead['training_status']>
+
 const ROLE_LABELS: Record<UserRole, string> = {
   admin: 'Admin',
   verification_lead: 'Verification lead',
   fellow: 'Fellow',
   stakeholder_reader: 'Stakeholder (read-only)',
+}
+
+// Per backend/frontend-api.md: "MVP frontend can expose only: admin, fellow"
+// — verification_lead/stakeholder_reader are reserved for later and aren't
+// meant to be created from this dashboard yet, even though they display fine
+// for existing users created via the backend CLI/Swagger.
+const CREATABLE_ROLES: UserRole[] = ['admin', 'fellow']
+
+const TRAINING_LABELS: Record<TrainingStatus, string> = {
+  not_started: 'Not started',
+  in_progress: 'In progress',
+  completed: 'Completed',
+}
+
+const TRAINING_BADGE_CLASSES: Record<TrainingStatus, string> = {
+  not_started: 'bg-secondary/10 text-secondary',
+  in_progress: 'bg-warning/10 text-warning',
+  completed: 'bg-success/10 text-success',
+}
+
+// Cycles a fellow's training status forward — the API has no separate
+// "toggle" action, just an arbitrary PATCH, so this picks the natural next step.
+const NEXT_TRAINING_STATUS: Record<TrainingStatus, TrainingStatus> = {
+  not_started: 'in_progress',
+  in_progress: 'completed',
+  completed: 'not_started',
 }
 
 function initialsFor(name: string) {
@@ -36,10 +76,14 @@ function StatusPill({ active }: { active: boolean }) {
   )
 }
 
-function NotAvailable() {
+function TrainingBadge({ status }: { status: UserRead['training_status'] }) {
+  const value = status ?? 'not_started'
   return (
-    <span className="text-secondary/60" title="Not supported by the API yet">
-      Not available
+    <span
+      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-sm font-semibold ${TRAINING_BADGE_CLASSES[value]}`}
+    >
+      {value === 'completed' && <BadgeCheck size={14} />}
+      {TRAINING_LABELS[value]}
     </span>
   )
 }
@@ -62,36 +106,45 @@ function ProfileDetails({ user }: { user: UserRead }) {
           <dd className="text-primary">{user.email}</dd>
         </div>
         <div className="flex items-center gap-2">
+          <Phone size={14} className="shrink-0 text-secondary" aria-hidden="true" />
+          <dd className="text-primary">{user.phone || 'Not provided'}</dd>
+        </div>
+        <div className="flex items-center gap-2">
+          <MapPin size={14} className="shrink-0 text-secondary" aria-hidden="true" />
+          <dd className="text-primary">{user.lga ? `${user.lga} LGA` : 'Not provided'}</dd>
+        </div>
+        <div className="flex items-center gap-2">
           <Calendar size={14} className="shrink-0 text-secondary" aria-hidden="true" />
           <dd className="text-primary">Joined {new Date(user.created_at).toLocaleDateString()}</dd>
         </div>
       </dl>
       <div className="flex flex-wrap items-center gap-4 border-t border-secondary/30 pt-4 text-sm">
         <span className="text-secondary">
-          LGA / State: <NotAvailable />
+          <strong className="text-primary">{user.verified_count ?? 0}</strong> reports verified
         </span>
         <span className="text-secondary">
-          Phone: <NotAvailable />
+          <strong className="text-primary">{user.flagged_count ?? 0}</strong> reports flagged
         </span>
-      </div>
-      <div className="flex flex-wrap items-center gap-4 text-sm">
-        <span className="text-secondary">
-          Reports verified: <NotAvailable />
-        </span>
-        <span className="text-secondary">
-          Reports flagged: <NotAvailable />
-        </span>
-        <span className="text-secondary">
-          Training: <NotAvailable />
-        </span>
+        <TrainingBadge status={user.training_status} />
       </div>
     </div>
   )
 }
 
 export function Fellows() {
-  const { users, page, hasMore, setPage, pageSize, createUser, isCreating, updateUser, isLoading, isError, refetch } =
-    useUsers()
+  const {
+    users,
+    total,
+    page,
+    setPage,
+    pageSize,
+    createUser,
+    isCreating,
+    updateUser,
+    isLoading,
+    isError,
+    refetch,
+  } = useUsers()
   const { showToast } = useToast()
   const [query, setQuery] = useState('')
   const [viewingUser, setViewingUser] = useState<UserRead | null>(null)
@@ -100,21 +153,32 @@ export function Fellows() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<UserRole>('fellow')
+  const [lga, setLga] = useState('')
+  const [phone, setPhone] = useState('')
 
   const filtered = users.filter((u) =>
-    `${u.full_name} ${u.email}`.toLowerCase().includes(query.toLowerCase()),
+    `${u.full_name} ${u.email} ${u.lga ?? ''}`.toLowerCase().includes(query.toLowerCase()),
   )
 
   async function handleAddFellow(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim() || !email.trim() || !password.trim()) return
     try {
-      await createUser({ email: email.trim(), password, full_name: name.trim(), role })
+      await createUser({
+        email: email.trim(),
+        password,
+        full_name: name.trim(),
+        role,
+        lga: lga.trim() || undefined,
+        phone: phone.trim() || undefined,
+      })
       showToast('Fellow added.')
       setName('')
       setEmail('')
       setPassword('')
       setRole('fellow')
+      setLga('')
+      setPhone('')
       setAddModalOpen(false)
     } catch {
       showToast("Couldn't add this fellow — please try again.")
@@ -126,6 +190,15 @@ export function Fellows() {
       await updateUser(user.id, { is_active: !user.is_active })
     } catch {
       showToast("Couldn't update this fellow — please try again.")
+    }
+  }
+
+  async function handleAdvanceTraining(user: UserRead) {
+    const current = user.training_status ?? 'not_started'
+    try {
+      await updateUser(user.id, { training_status: NEXT_TRAINING_STATUS[current] })
+    } catch {
+      showToast("Couldn't update training status — please try again.")
     }
   }
 
@@ -162,11 +235,11 @@ export function Fellows() {
         <>
           {/* Desktop: table */}
           <div className="hidden overflow-x-auto rounded-2xl border border-secondary/30 bg-surface md:block">
-            <table className="w-full min-w-[760px] text-left">
+            <table className="w-full min-w-[820px] text-left">
               <thead>
                 <tr className="border-b border-secondary/30 text-xs font-semibold uppercase tracking-wide text-secondary">
                   <th className="px-4 py-3">Fellow</th>
-                  <th className="px-4 py-3">Role</th>
+                  <th className="px-4 py-3">Role / LGA</th>
                   <th className="px-4 py-3">Reports</th>
                   <th className="px-4 py-3">Training</th>
                   <th className="px-4 py-3">Status</th>
@@ -187,12 +260,15 @@ export function Fellows() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-primary">{ROLE_LABELS[user.role]}</td>
-                    <td className="px-4 py-3 text-sm">
-                      <NotAvailable />
+                    <td className="px-4 py-3 text-sm text-primary">
+                      {ROLE_LABELS[user.role]}
+                      {user.lga && <p className="text-secondary">{user.lga} LGA</p>}
                     </td>
-                    <td className="px-4 py-3 text-sm">
-                      <NotAvailable />
+                    <td className="px-4 py-3 text-sm text-primary">
+                      {user.verified_count ?? 0} verified · {user.flagged_count ?? 0} flagged
+                    </td>
+                    <td className="px-4 py-3">
+                      <TrainingBadge status={user.training_status} />
                     </td>
                     <td className="px-4 py-3">
                       <StatusPill active={user.is_active} />
@@ -202,6 +278,11 @@ export function Fellows() {
                         label={`Actions for ${user.full_name}`}
                         items={[
                           { label: 'View profile', icon: Eye, onClick: () => setViewingUser(user) },
+                          {
+                            label: `Advance training (→ ${TRAINING_LABELS[NEXT_TRAINING_STATUS[user.training_status ?? 'not_started']]})`,
+                            icon: GraduationCap,
+                            onClick: () => handleAdvanceTraining(user),
+                          },
                           {
                             label: user.is_active ? 'Deactivate' : 'Reactivate',
                             icon: user.is_active ? UserX : UserCheck,
@@ -228,10 +309,21 @@ export function Fellows() {
                     </div>
                     <div>
                       <p className="font-bold text-primary">{user.full_name}</p>
-                      <p className="text-sm text-secondary">{ROLE_LABELS[user.role]}</p>
+                      <p className="text-sm text-secondary">
+                        {ROLE_LABELS[user.role]}
+                        {user.lga && ` · ${user.lga} LGA`}
+                      </p>
                     </div>
                   </div>
                   <StatusPill active={user.is_active} />
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <span className="text-secondary">
+                    <strong className="text-primary">{user.verified_count ?? 0}</strong> verified ·{' '}
+                    <strong className="text-primary">{user.flagged_count ?? 0}</strong> flagged
+                  </span>
+                  <TrainingBadge status={user.training_status} />
                 </div>
 
                 <div className="mt-4 space-y-2">
@@ -242,24 +334,34 @@ export function Fellows() {
                   >
                     View profile
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handleToggleActive(user)}
-                    className={`flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-lg border text-sm font-semibold ${
-                      user.is_active
-                        ? 'border-danger text-danger hover:bg-danger hover:text-white'
-                        : 'border-success text-success hover:bg-success hover:text-white'
-                    }`}
-                  >
-                    {user.is_active ? <UserX size={16} /> : <UserCheck size={16} />}
-                    {user.is_active ? 'Deactivate' : 'Reactivate'}
-                  </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAdvanceTraining(user)}
+                      className="flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg border border-secondary/30 text-sm font-semibold text-primary hover:bg-neutral"
+                    >
+                      <GraduationCap size={16} />
+                      Advance training
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleActive(user)}
+                      className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg border text-sm font-semibold ${
+                        user.is_active
+                          ? 'border-danger text-danger hover:bg-danger hover:text-white'
+                          : 'border-success text-success hover:bg-success hover:text-white'
+                      }`}
+                    >
+                      {user.is_active ? <UserX size={16} /> : <UserCheck size={16} />}
+                      {user.is_active ? 'Deactivate' : 'Reactivate'}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
-          <Pagination page={page} pageSize={pageSize} hasMore={hasMore} onPageChange={setPage} />
+          <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
         </>
       )}
 
@@ -321,7 +423,7 @@ export function Fellows() {
                 onChange={(e) => setRole(e.target.value as UserRole)}
                 className="mt-1.5 min-h-[44px] w-full rounded-lg border border-secondary/30 px-3 text-base outline-none focus:border-tertiary"
               >
-                {(Object.keys(ROLE_LABELS) as UserRole[]).map((r) => (
+                {CREATABLE_ROLES.map((r) => (
                   <option key={r} value={r}>
                     {ROLE_LABELS[r]}
                   </option>
@@ -329,25 +431,14 @@ export function Fellows() {
               </select>
             </div>
             <div>
-              <label htmlFor="fellow-state" className="text-sm font-semibold text-primary">
-                State
-              </label>
-              <input
-                id="fellow-state"
-                disabled
-                placeholder="Not supported by the API yet"
-                className="mt-1.5 min-h-[44px] w-full cursor-not-allowed rounded-lg border border-secondary/30 bg-neutral px-3 text-base text-secondary outline-none"
-              />
-            </div>
-            <div>
               <label htmlFor="fellow-lga" className="text-sm font-semibold text-primary">
                 LGA
               </label>
               <input
                 id="fellow-lga"
-                disabled
-                placeholder="Not supported by the API yet"
-                className="mt-1.5 min-h-[44px] w-full cursor-not-allowed rounded-lg border border-secondary/30 bg-neutral px-3 text-base text-secondary outline-none"
+                value={lga}
+                onChange={(e) => setLga(e.target.value)}
+                className="mt-1.5 min-h-[44px] w-full rounded-lg border border-secondary/30 px-3 text-base outline-none focus:border-tertiary"
               />
             </div>
             <div>
@@ -356,9 +447,9 @@ export function Fellows() {
               </label>
               <input
                 id="fellow-phone"
-                disabled
-                placeholder="Not supported by the API yet"
-                className="mt-1.5 min-h-[44px] w-full cursor-not-allowed rounded-lg border border-secondary/30 bg-neutral px-3 text-base text-secondary outline-none"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="mt-1.5 min-h-[44px] w-full rounded-lg border border-secondary/30 px-3 text-base outline-none focus:border-tertiary"
               />
             </div>
             <div className="flex gap-3">
