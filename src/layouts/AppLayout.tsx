@@ -1,8 +1,15 @@
-import { Outlet } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 import { Sidebar } from '../components/Sidebar'
 import { Topbar } from '../components/Topbar'
+import { useAuth } from '../hooks/useAuth'
 
 export function AppLayout() {
+  const { isAuthenticated, isLoadingUser, currentUser } = useAuth()
+
+  if (!isAuthenticated && !isLoadingUser) return <Navigate to="/login" replace />
+  if (isLoadingUser) return null
+  if (currentUser?.role === 'fellow') return <Navigate to="/fellow" replace />
+
   return (
     <div className="flex min-h-screen bg-neutral">
       <div className="hidden md:block">

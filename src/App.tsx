@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Provider as ReduxProvider } from 'react-redux'
+import { store } from './api/store'
 import { ThemeProvider } from './lib/theme'
-import { AppDataProvider } from './lib/appData'
 import { ToastProvider } from './lib/toast'
 import { PublicLayout } from './layouts/PublicLayout'
 import { AppLayout } from './layouts/AppLayout'
@@ -21,9 +22,9 @@ import { Settings } from './pages/Settings'
 
 function App() {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AppDataProvider>
+    <ReduxProvider store={store}>
+      <ThemeProvider>
+        <ToastProvider>
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -52,9 +53,9 @@ function App() {
               </Route>
             </Routes>
           </BrowserRouter>
-        </AppDataProvider>
-      </ToastProvider>
-    </ThemeProvider>
+        </ToastProvider>
+      </ThemeProvider>
+    </ReduxProvider>
   )
 }
 

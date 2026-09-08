@@ -1,33 +1,27 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Select from 'react-select'
 import { ReportMap } from '../components/ReportMap'
 import { StatusBadge } from '../components/StatusBadge'
+import { LoadingState, ErrorState } from '../components/QueryState'
 import { createSelectStyles } from '../lib/selectStyles'
-import { type ReportStatus } from '../data/mockData'
-import { useAppData } from '../lib/useAppData'
+import { REPORT_STATUS_CONFIG, REPORT_STATUSES } from '../lib/reportStatus'
+import { useReports } from '../hooks/useReports'
+import type { ReportStatus } from '../api/kuria'
 
 type StatusOption = { label: string; value: ReportStatus | 'all' }
 
 const statusFilters: StatusOption[] = [
   { label: 'All statuses', value: 'all' },
-  { label: 'Verified', value: 'verified' },
-  { label: 'Pending', value: 'pending' },
-  { label: 'Flagged', value: 'flagged' },
+  ...REPORT_STATUSES.map((s) => ({ label: REPORT_STATUS_CONFIG[s].label, value: s })),
 ]
 
 const selectStyles = createSelectStyles<StatusOption>()
 
 export function MapPage() {
-  const { reports } = useAppData()
-  const [status, setStatus] = useState<ReportStatus | 'all'>('all')
+  const { reports, status, setStatus, isLoading, isError, refetch } = useReports()
   const [panelOpen, setPanelOpen] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches,
-  )
-
-  const filtered = useMemo(
-    () => reports.filter((r) => status === 'all' || r.status === status),
-    [reports, status],
   )
 
   return (
@@ -44,17 +38,17 @@ export function MapPage() {
         <div className="fixed inset-y-0 left-0 z-[1100] w-72 shrink-0 overflow-y-auto border-r border-secondary/30 bg-surface p-5 md:static md:inset-auto md:z-10">
           <h2 className="text-lg font-bold text-primary">Live reports</h2>
           <p className="mt-1 text-sm text-secondary">
-            <strong className="text-primary">{filtered.length}</strong> reports in the last hour
+            <strong className="text-primary">{reports.length}</strong> reports on this page
           </p>
 
           <div className="mt-4">
             <p className="label-text text-secondary">Legend</p>
             <div className="mt-2 space-y-2">
-              <StatusBadge status="verified" />
-              <br />
-              <StatusBadge status="pending" />
-              <br />
-              <StatusBadge status="flagged" />
+              {REPORT_STATUSES.map((s) => (
+                <div key={s}>
+                  <StatusBadge status={s} />
+                </div>
+              ))}
             </div>
           </div>
 
@@ -87,7 +81,13 @@ export function MapPage() {
       </button>
 
       <div className="flex-1">
-        <ReportMap reports={filtered} height="100%" zoom={9} styleSwitcher />
+        {isLoading ? (
+          <LoadingState label="Loading reports…" />
+        ) : isError ? (
+          <ErrorState description="Couldn't load reports from the server." onRetry={refetch} />
+        ) : (
+          <ReportMap reports={reports} height="100%" zoom={9} styleSwitcher />
+        )}
       </div>
     </div>
   )

@@ -4,6 +4,16 @@ import { useLocation } from 'react-router-dom'
 import { Bell, Menu, Moon, Sun } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { useTheme } from '../lib/useTheme'
+import { useAuth } from '../hooks/useAuth'
+
+function initialsFor(name: string) {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
 
 const titles: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -25,6 +35,7 @@ export function Topbar() {
   const { pathname } = useLocation()
   const title = titleForPath(pathname)
   const { theme, toggleTheme } = useTheme()
+  const { currentUser } = useAuth()
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-secondary/30 bg-surface px-4 py-3 sm:px-6">
@@ -57,8 +68,11 @@ export function Topbar() {
           <Bell size={20} />
           <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger" />
         </button>
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-chrome text-sm font-semibold text-on-chrome">
-          AY
+        <div
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-chrome text-sm font-semibold text-on-chrome"
+          title={currentUser?.full_name}
+        >
+          {currentUser ? initialsFor(currentUser.full_name) : '—'}
         </div>
       </div>
 

@@ -1,6 +1,7 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { Navigate, NavLink, Outlet } from 'react-router-dom'
 import { LayoutDashboard, Moon, Plus, Sun, User } from 'lucide-react'
 import { useTheme } from '../lib/useTheme'
+import { useAuth } from '../hooks/useAuth'
 
 const sideNavItems = [{ to: '/fellow', label: 'Dashboard', icon: LayoutDashboard, end: true }]
 
@@ -8,6 +9,11 @@ const trailingNavItems = [{ to: '/fellow/profile', label: 'Profile', icon: User,
 
 export function FellowLayout() {
   const { theme, toggleTheme } = useTheme()
+  const { isAuthenticated, isLoadingUser, currentUser } = useAuth()
+
+  if (!isAuthenticated && !isLoadingUser) return <Navigate to="/login" replace />
+  if (isLoadingUser) return null
+  if (currentUser && currentUser.role !== 'fellow') return <Navigate to="/dashboard" replace />
 
   return (
     <div className="flex min-h-screen flex-col bg-neutral">

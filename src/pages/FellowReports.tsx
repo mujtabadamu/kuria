@@ -1,37 +1,26 @@
-import { useState } from 'react'
 import { Search } from 'lucide-react'
 import Select from 'react-select'
 import { ReportRow } from '../components/ReportRow'
 import { ReportCard } from '../components/ReportCard'
+import { Pagination } from '../components/Pagination'
+import { LoadingState, EmptyState, ErrorState } from '../components/QueryState'
 import { createSelectStyles } from '../lib/selectStyles'
-import { type ReportStatus } from '../data/mockData'
-import { useAppData } from '../lib/useAppData'
+import { REPORT_STATUS_CONFIG, REPORT_STATUSES } from '../lib/reportStatus'
+import { useReports, REPORTS_PAGE_SIZE } from '../hooks/useReports'
+import type { ReportStatus } from '../api/kuria'
 
 type StatusOption = { label: string; value: ReportStatus | 'all' }
 
 const statusFilters: StatusOption[] = [
   { label: 'All statuses', value: 'all' },
-  { label: 'Verified', value: 'verified' },
-  { label: 'Pending', value: 'pending' },
-  { label: 'Flagged', value: 'flagged' },
+  ...REPORT_STATUSES.map((s) => ({ label: REPORT_STATUS_CONFIG[s].label, value: s })),
 ]
 
 const selectStyles = createSelectStyles<StatusOption>()
 
 export function FellowReports() {
-  const { reports } = useAppData()
-  const [status, setStatus] = useState<ReportStatus | 'all'>('all')
-  const [query, setQuery] = useState('')
-
-  const filtered = reports.filter((r) => {
-    if (status !== 'all' && r.status !== status) return false
-    if (query) {
-      const q = query.toLowerCase()
-      const haystack = `${r.id} ${r.lga} ${r.pollingUnit} ${r.transcriptEn} ${r.transcriptHa}`.toLowerCase()
-      if (!haystack.includes(q)) return false
-    }
-    return true
-  })
+  const { reports, page, total, setPage, status, setStatus, query, setQuery, isLoading, isError, refetch } =
+    useReports()
 
   return (
     <div className="space-y-4">
@@ -51,7 +40,7 @@ export function FellowReports() {
 
         <Select<StatusOption, false>
           aria-label="Filter by status"
-          className="w-full sm:w-44"
+          className="w-full sm:w-56"
           styles={selectStyles}
           options={statusFilters}
           value={statusFilters.find((f) => f.value === status)}
@@ -60,11 +49,15 @@ export function FellowReports() {
         />
       </div>
 
-      {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-secondary/30 bg-surface p-12 text-center">
-          <p className="text-lg font-semibold text-primary">No reports match these filters</p>
-          <p className="mt-1 text-sm text-secondary">Try adjusting the search or status filter above.</p>
-        </div>
+      {isLoading ? (
+        <LoadingState label="Loading reports…" />
+      ) : isError ? (
+        <ErrorState description="Couldn't load reports from the server." onRetry={refetch} />
+      ) : reports.length === 0 ? (
+        <EmptyState
+          title="No reports match these filters"
+          description="Try adjusting the search or status filter above."
+        />
       ) : (
         <>
           <div className="hidden overflow-x-auto rounded-2xl border border-secondary/30 bg-surface md:block">
@@ -73,14 +66,14 @@ export function FellowReports() {
                 <tr className="border-b border-secondary/30 text-xs font-semibold uppercase tracking-wide text-secondary">
                   <th className="px-4 py-3">Time</th>
                   <th className="px-4 py-3">LGA</th>
-                  <th className="px-4 py-3">Lang</th>
+                  <th className="px-4 py-3">Type</th>
                   <th className="px-4 py-3">Summary</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((report) => (
+                {reports.map((report) => (
                   <ReportRow key={report.id} report={report} basePath="/fellow/reports" />
                 ))}
               </tbody>
@@ -88,11 +81,15 @@ export function FellowReports() {
           </div>
 
           <div className="space-y-3 md:hidden">
-            {filtered.map((report) => (
+            {reports.map((report) => (
               <ReportCard key={report.id} report={report} basePath="/fellow/reports" />
             ))}
           </div>
         </>
+      )}
+
+      {!isLoading && !isError && (
+        <Pagination page={page} pageSize={REPORTS_PAGE_SIZE} total={total} onPageChange={setPage} />
       )}
     </div>
   )

@@ -2,23 +2,19 @@ import { useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import { divIcon } from 'leaflet'
 import { Link } from 'react-router-dom'
-import type { ReportStatus, VoiceReport } from '../data/mockData'
+import type { ReportRead } from '../api/kuria'
+import { REPORT_STATUS_CONFIG } from '../lib/reportStatus'
 import { StatusBadge } from './StatusBadge'
 
-const statusColor: Record<ReportStatus, string> = {
-  verified: '#00897B',
-  pending: '#1A1A1A',
-  flagged: '#D32F2F',
-}
-
-function pinIcon(status: ReportStatus) {
+function pinIcon(status: ReportRead['status']) {
+  const color = REPORT_STATUS_CONFIG[status].dotColor
   return divIcon({
     className: '',
     html: `<span style="
       display:block;
       width:18px;height:18px;
       border-radius:50%;
-      background:${statusColor[status]};
+      background:${color};
       border:2.5px solid white;
       box-shadow:0 1px 4px rgba(0,0,0,0.35);
     "></span>`,
@@ -57,13 +53,18 @@ export function ReportMap({
   interactive = true,
   styleSwitcher = false,
 }: {
-  reports: VoiceReport[]
+  reports: ReportRead[]
   height?: string
   zoom?: number
   interactive?: boolean
   styleSwitcher?: boolean
 }) {
   const [mapStyle, setMapStyle] = useState<MapStyle>('standard')
+  // Location is optional on a real report (no PU matched yet, or lat/lng
+  // never resolved) — only plottable reports get a pin.
+  const plottable = reports.filter(
+    (r): r is ReportRead & { lat: number; lng: number } => r.lat != null && r.lng != null,
+  )
 
   return (
     <div
@@ -99,15 +100,17 @@ export function ReportMap({
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer attribution={tileAttribution} url={tileStyles[mapStyle].url} />
-        {reports.map((report) => (
+        {plottable.map((report) => (
           <Marker key={report.id} position={[report.lat, report.lng]} icon={pinIcon(report.status)}>
             <Popup>
               <div className="min-w-[200px] space-y-2">
                 <StatusBadge status={report.status} />
-                <p className="text-sm font-semibold text-primary">{report.pollingUnit}</p>
-                <p className="text-xs text-secondary">{report.lga} LGA</p>
+                <p className="text-sm font-semibold text-primary">
+                  {report.pu?.pu_name ?? report.location_text ?? 'Unknown location'}
+                </p>
+                <p className="text-xs text-secondary">{report.pu?.lga ?? '—'} LGA</p>
                 <Link
-                  to={`/reports/${report.id}`}
+                  to={`/reports/${report.public_ref}`}
                   className="inline-block text-sm font-semibold text-primary hover:text-tertiary hover:underline"
                 >
                   View full report →

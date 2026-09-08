@@ -1,42 +1,44 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle2, LogOut } from 'lucide-react'
-import { CURRENT_FELLOW_NAME } from '../lib/currentFellow'
+import { useAuth } from '../hooks/useAuth'
+import { useUpdateUserMutation } from '../api/kuria'
 
-const STORAGE_KEY = 'kuria-fellow-profile'
-
-interface StoredProfile {
-  name: string
-  email: string
-  phone: string
-}
-
-function loadProfile(): StoredProfile {
-  const fallback: StoredProfile = {
-    name: CURRENT_FELLOW_NAME,
-    email: 'musa.bello@yapd4africa.org',
-    phone: '+234 813 555 0271',
-  }
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? { ...fallback, ...JSON.parse(stored) } : fallback
-  } catch {
-    return fallback
-  }
+function initialsFor(name: string) {
+  return name
+    .split(' ')
+    .map((p) => p[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 }
 
 export function FellowProfile() {
   const navigate = useNavigate()
-  const [initial] = useState(loadProfile)
-  const [name, setName] = useState(initial.name)
-  const [email, setEmail] = useState(initial.email)
-  const [phone, setPhone] = useState(initial.phone)
+  const { currentUser, logout } = useAuth()
+  const [updateUser, { isLoading: isSaving }] = useUpdateUserMutation()
+  const [name, setName] = useState('')
+  const [syncedUserId, setSyncedUserId] = useState<number | null>(null)
   const [saved, setSaved] = useState(false)
 
-  function handleSave() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, email, phone }))
+  // Derived-during-render sync (not an effect): seed `name` once from the
+  // freshly-loaded user, without re-running on every render or clobbering
+  // in-progress edits on refetches.
+  if (currentUser && currentUser.id !== syncedUserId) {
+    setSyncedUserId(currentUser.id)
+    setName(currentUser.full_name)
+  }
+
+  async function handleSave() {
+    if (!currentUser) return
+    await updateUser({ userId: currentUser.id, userUpdate: { full_name: name } }).unwrap()
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
+  }
+
+  function handleLogout() {
+    logout()
+    navigate('/login')
   }
 
   return (
@@ -45,15 +47,10 @@ export function FellowProfile() {
 
       <div className="flex items-center gap-4 rounded-2xl border border-secondary/30 bg-surface p-6">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-chrome text-xl font-bold text-on-chrome">
-          {name
-            .split(' ')
-            .map((p) => p[0])
-            .join('')
-            .slice(0, 2)
-            .toUpperCase()}
+          {name ? initialsFor(name) : '—'}
         </div>
         <div>
-          <p className="text-lg font-bold text-primary">{name}</p>
+          <p className="text-lg font-bold text-primary">{name || 'Loading…'}</p>
           <p className="text-sm text-secondary">Digital Integrity Fellow</p>
         </div>
       </div>
@@ -78,9 +75,10 @@ export function FellowProfile() {
             </label>
             <input
               id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1.5 min-h-[44px] w-full rounded-lg border border-secondary/30 px-3 text-base outline-none focus:border-tertiary"
+              value={currentUser?.email ?? ''}
+              disabled
+              title="Email can't be changed here — the API doesn't support updating it."
+              className="mt-1.5 min-h-[44px] w-full cursor-not-allowed rounded-lg border border-secondary/30 bg-neutral px-3 text-base text-secondary outline-none"
             />
           </div>
           <div>
@@ -89,9 +87,10 @@ export function FellowProfile() {
             </label>
             <input
               id="phone"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="mt-1.5 min-h-[44px] w-full rounded-lg border border-secondary/30 px-3 text-base outline-none focus:border-tertiary"
+              value="Not available"
+              disabled
+              title="The API doesn't collect a phone number for users yet."
+              className="mt-1.5 min-h-[44px] w-full cursor-not-allowed rounded-lg border border-secondary/30 bg-neutral px-3 text-base text-secondary outline-none"
             />
           </div>
         </div>
@@ -100,9 +99,10 @@ export function FellowProfile() {
           <button
             type="button"
             onClick={handleSave}
-            className="min-h-[44px] rounded-lg bg-tertiary px-6 text-sm font-semibold text-white hover:bg-tertiary-dark"
+            disabled={isSaving || !currentUser}
+            className="min-h-[44px] rounded-lg bg-tertiary px-6 text-sm font-semibold text-white hover:bg-tertiary-dark disabled:opacity-60"
           >
-            Save changes
+            {isSaving ? 'Saving…' : 'Save changes'}
           </button>
           {saved && (
             <p className="flex items-center gap-1.5 text-sm font-semibold text-success">
@@ -115,7 +115,7 @@ export function FellowProfile() {
 
       <button
         type="button"
-        onClick={() => navigate('/login')}
+        onClick={handleLogout}
         className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border-2 border-danger text-sm font-semibold text-danger hover:bg-danger hover:text-white"
       >
         <LogOut size={16} />

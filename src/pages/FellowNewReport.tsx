@@ -1,54 +1,78 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Mic } from 'lucide-react'
-import { useAppData } from '../lib/useAppData'
-import { CURRENT_FELLOW_NAME } from '../lib/currentFellow'
-import type { VoiceReport } from '../data/mockData'
-import { VoiceRecorder, type Recording } from '../components/VoiceRecorder'
+import Select from 'react-select'
+import { useAuth } from '../hooks/useAuth'
+import { useCreateReportMutation, useSearchPollingUnitsQuery, type PollingUnitRead } from '../api/kuria'
+import { createSelectStyles } from '../lib/selectStyles'
+import { VoiceRecorder } from '../components/VoiceRecorder'
 import { useToast } from '../lib/useToast'
 
-function nextReportId(reports: VoiceReport[]) {
-  const max = reports.reduce((acc, r) => {
-    const n = Number(r.id.replace('RPT-', ''))
-    return Number.isFinite(n) && n > acc ? n : acc
-  }, 1000)
-  return `RPT-${max + 1}`
+type PuOption = { label: string; value: PollingUnitRead }
+
+function puLabel(pu: PollingUnitRead) {
+  return `${pu.pu_name} — ${pu.lga}, ${pu.state}`
 }
 
+// The API needs a `reporter_hash` but doesn't document what a dashboard
+// (as opposed to WhatsApp) submission should send. This derives a stable,
+// non-reversible hash from the authenticated fellow's user id as a
+// reasonable default — flagged for backend confirmation, not invented data
+// about the reporter's identity.
+async function hashReporterId(id: number) {
+  const encoded = new TextEncoder().encode(`kuria-fellow-${id}`)
+  const digest = await crypto.subtle.digest('SHA-256', encoded)
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+const selectStyles = createSelectStyles<PuOption>()
+
 export function FellowNewReport() {
-  const { reports, fellows, addReport } = useAppData()
+  const { currentUser } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
+  const [createReport, { isLoading: isSubmitting }] = useCreateReportMutation()
 
-  const currentFellow = fellows.find((f) => f.name === CURRENT_FELLOW_NAME)
-
-  const [pollingUnit, setPollingUnit] = useState('')
+  const [puQuery, setPuQuery] = useState('')
+  const [debouncedPuQuery, setDebouncedPuQuery] = useState('')
+  const [selectedPu, setSelectedPu] = useState<PollingUnitRead | null>(null)
   const [description, setDescription] = useState('')
-  const [recording, setRecording] = useState<Recording | null>(null)
 
-  function handleSubmit(e: React.FormEvent) {
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedPuQuery(puQuery), 300)
+    return () => clearTimeout(timer)
+  }, [puQuery])
+
+  const { data: pollingUnits, isFetching: isSearchingPu } = useSearchPollingUnitsQuery(
+    { q: debouncedPuQuery, limit: 10 },
+    { skip: debouncedPuQuery.trim().length < 2 },
+  )
+
+  const puOptions: PuOption[] = (pollingUnits ?? []).map((pu) => ({ label: puLabel(pu), value: pu }))
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!pollingUnit.trim() || (!description.trim() && !recording)) return
+    if (!selectedPu || !description.trim() || !currentUser) return
 
-    const id = nextReportId(reports)
-    addReport({
-      id,
-      timestamp: new Date().toISOString(),
-      state: 'Kaduna',
-      lga: currentFellow?.lga ?? 'Kaduna North',
-      pollingUnit: pollingUnit.trim(),
-      lat: 10.5222,
-      lng: 7.4383,
-      language: 'EN',
-      transcriptHa: '',
-      transcriptEn: description.trim(),
-      status: 'pending',
-      reporter: CURRENT_FELLOW_NAME,
-      audioDuration: recording?.duration ?? '0:00',
-      audioUrl: recording?.url,
-    })
-    showToast('Report submitted successfully.')
-    navigate('/fellow/reports')
+    try {
+      const reporterHash = await hashReporterId(currentUser.id)
+      await createReport({
+        reportCreate: {
+          reporter_hash: reporterHash,
+          transcript: description.trim(),
+          location_text: puLabel(selectedPu),
+          pu_reference: selectedPu.pu_code,
+          lat: selectedPu.lat ?? undefined,
+          lng: selectedPu.lng ?? undefined,
+        },
+      }).unwrap()
+      showToast('Report submitted successfully.')
+      navigate('/fellow/reports')
+    } catch {
+      showToast("Couldn't submit the report — please try again.")
+    }
   }
 
   return (
@@ -58,8 +82,7 @@ export function FellowNewReport() {
         <h1 className="text-xl font-bold text-primary">New Report</h1>
       </div>
       <p className="mb-6 text-sm text-secondary">
-        Record a voice note and add a short description. Transcription and translation happen
-        automatically once submitted — you don&apos;t need to type it out.
+        Search for the polling unit and add a short description of what you observed.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-secondary/30 bg-surface p-6">
@@ -67,21 +90,31 @@ export function FellowNewReport() {
           <label htmlFor="pollingUnit" className="text-sm font-semibold text-primary">
             Polling unit
           </label>
-          <input
-            id="pollingUnit"
-            required
-            value={pollingUnit}
-            onChange={(e) => setPollingUnit(e.target.value)}
-            placeholder="PU 004 - Unguwar Rimi Primary School"
-            className="mt-1.5 min-h-[44px] w-full rounded-lg border border-secondary/30 px-3 text-base outline-none focus:border-tertiary"
+          <Select<PuOption, false>
+            inputId="pollingUnit"
+            className="mt-1.5"
+            styles={selectStyles}
+            options={puOptions}
+            value={selectedPu ? { label: puLabel(selectedPu), value: selectedPu } : null}
+            onInputChange={(value) => setPuQuery(value)}
+            onChange={(option) => setSelectedPu(option?.value ?? null)}
+            isLoading={isSearchingPu}
+            placeholder="Search by polling unit name..."
+            noOptionsMessage={() =>
+              debouncedPuQuery.trim().length < 2 ? 'Type at least 2 characters…' : 'No matches'
+            }
           />
         </div>
 
         <div>
           <span className="text-sm font-semibold text-primary">Voice recording</span>
           <div className="mt-1.5">
-            <VoiceRecorder onChange={setRecording} />
+            <VoiceRecorder onChange={() => {}} />
           </div>
+          <p className="mt-1.5 text-xs text-secondary">
+            The recording isn't attached to your submission yet — the report API doesn't accept audio
+            uploads from this form. Please describe what you observed below.
+          </p>
         </div>
 
         <div>
@@ -90,6 +123,7 @@ export function FellowNewReport() {
           </label>
           <textarea
             id="description"
+            required
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
@@ -100,9 +134,10 @@ export function FellowNewReport() {
 
         <button
           type="submit"
-          className="min-h-[44px] w-full rounded-lg bg-tertiary text-base font-semibold text-white hover:bg-tertiary-dark"
+          disabled={!selectedPu || !description.trim() || isSubmitting}
+          className="min-h-[44px] w-full rounded-lg bg-tertiary text-base font-semibold text-white hover:bg-tertiary-dark disabled:opacity-60"
         >
-          Submit report
+          {isSubmitting ? 'Submitting…' : 'Submit report'}
         </button>
       </form>
     </div>

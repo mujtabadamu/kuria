@@ -1,48 +1,33 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-type Role = 'admin' | 'fellow'
+import { useAuth } from '../hooks/useAuth'
 
 export function Login() {
   const navigate = useNavigate()
-  const [role, setRole] = useState<Role>('admin')
-  const [identifier, setIdentifier] = useState('')
+  const { login, isLoggingIn } = useAuth()
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    navigate(role === 'admin' ? '/dashboard' : '/fellow')
+    setError(null)
+    try {
+      await login({ email, password })
+      // Role-based routing (admin/verification_lead/stakeholder_reader vs.
+      // fellow) is enforced by AppLayout/FellowLayout's own guards, which
+      // read the real role from /auth/me — so we always land on /dashboard
+      // and let the guard bounce fellows to /fellow.
+      navigate('/dashboard')
+    } catch {
+      setError('Invalid email or password.')
+    }
   }
 
   return (
     <div className="flex min-h-[calc(100vh-73px-260px)] items-center justify-center px-4 py-16">
       <div className="w-full max-w-[420px]">
-        <div className="grid grid-cols-2 gap-1 rounded-lg bg-neutral p-1" role="tablist" aria-label="Sign in as">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={role === 'admin'}
-            onClick={() => setRole('admin')}
-            className={`min-h-[40px] rounded-md text-sm font-semibold transition-colors ${
-              role === 'admin' ? 'bg-tertiary text-white shadow-sm' : 'text-secondary hover:text-primary'
-            }`}
-          >
-            Admin
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={role === 'fellow'}
-            onClick={() => setRole('fellow')}
-            className={`min-h-[40px] rounded-md text-sm font-semibold transition-colors ${
-              role === 'fellow' ? 'bg-tertiary text-white shadow-sm' : 'text-secondary hover:text-primary'
-            }`}
-          >
-            Fellow
-          </button>
-        </div>
-
-        <div className="mt-4 rounded-2xl border border-secondary/30 bg-surface p-8">
+        <div className="rounded-2xl border border-secondary/30 bg-surface p-8">
           <div className="flex justify-center">
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-tertiary text-xl font-bold text-white">
               K
@@ -55,17 +40,17 @@ export function Login() {
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
-              <label htmlFor="identifier" className="text-sm font-semibold text-primary">
-                Email or phone
+              <label htmlFor="email" className="text-sm font-semibold text-primary">
+                Email
               </label>
               <input
-                id="identifier"
-                type="text"
+                id="email"
+                type="email"
                 required
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="mt-1.5 min-h-[44px] w-full rounded-lg border border-secondary/30 px-3 text-base outline-none focus:border-tertiary"
-                placeholder={role === 'admin' ? 'amina.yusuf@yapd4africa.org' : 'musa.bello@yapd4africa.org'}
+                placeholder="amina.yusuf@yapd4africa.org"
               />
             </div>
             <div>
@@ -82,11 +67,19 @@ export function Login() {
                 placeholder="••••••••"
               />
             </div>
+
+            {error && (
+              <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">
+                {error}
+              </p>
+            )}
+
             <button
               type="submit"
-              className="min-h-[44px] w-full rounded-lg bg-tertiary text-base font-semibold text-white hover:bg-tertiary-dark"
+              disabled={isLoggingIn}
+              className="min-h-[44px] w-full rounded-lg bg-tertiary text-base font-semibold text-white hover:bg-tertiary-dark disabled:opacity-60"
             >
-              Sign in as {role === 'admin' ? 'Admin' : 'Fellow'}
+              {isLoggingIn ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
         </div>
