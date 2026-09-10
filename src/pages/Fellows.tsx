@@ -8,6 +8,7 @@ import {
   Phone,
   BadgeCheck,
   GraduationCap,
+  KeyRound,
   UserX,
   UserCheck,
   Eye,
@@ -18,6 +19,7 @@ import { DropdownMenu } from '../components/DropdownMenu'
 import { Pagination } from '../components/Pagination'
 import { LoadingState, EmptyState, ErrorState } from '../components/QueryState'
 import { useToast } from '../lib/useToast'
+import { getErrorMessage } from '../lib/apiError'
 import type { UserRead, UserRole } from '../api/kuria'
 
 type TrainingStatus = NonNullable<UserRead['training_status']>
@@ -127,7 +129,92 @@ function ProfileDetails({ user }: { user: UserRead }) {
         </span>
         <TrainingBadge status={user.training_status} />
       </div>
+      <div className="space-y-1.5 border-t border-secondary/30 pt-4 text-sm">
+        <p className="flex items-center gap-2">
+          <KeyRound size={14} className="shrink-0 text-secondary" aria-hidden="true" />
+          {user.must_change_password ? (
+            <span className="text-warning">
+              On a temporary password
+              {user.temporary_password_expires_at &&
+                ` — expires ${new Date(user.temporary_password_expires_at).toLocaleString()}`}
+            </span>
+          ) : (
+            <span className="text-secondary">
+              Password set
+              {user.password_changed_at && ` · changed ${new Date(user.password_changed_at).toLocaleDateString()}`}
+            </span>
+          )}
+        </p>
+        <p className="pl-[22px] text-secondary">
+          {user.last_login_at ? `Last login ${new Date(user.last_login_at).toLocaleString()}` : 'Never logged in'}
+        </p>
+      </div>
     </div>
+  )
+}
+
+function ResetPasswordModal({ user, onClose }: { user: UserRead; onClose: () => void }) {
+  const { resetPassword, isResettingPassword } = useUsers()
+  const { showToast } = useToast()
+  const [temporaryPassword, setTemporaryPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    try {
+      await resetPassword(user.id, temporaryPassword)
+      showToast(`Password reset for ${user.full_name}.`)
+      onClose()
+    } catch (err) {
+      setError(getErrorMessage(err, "Couldn't reset this password — please try again."))
+    }
+  }
+
+  return (
+    <Modal title={`Reset password — ${user.full_name}`} onClose={onClose}>
+      <p className="mb-4 text-xs text-secondary">
+        This revokes their current session and starts a new 72-hour temporary-password window. Share the new
+        password with them directly.
+      </p>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="reset-password" className="text-sm font-semibold text-primary">
+            New temporary password
+          </label>
+          <input
+            id="reset-password"
+            type="text"
+            required
+            minLength={8}
+            value={temporaryPassword}
+            onChange={(e) => setTemporaryPassword(e.target.value)}
+            className="mt-1.5 min-h-[44px] w-full rounded-lg border border-secondary/30 px-3 text-base outline-none focus:border-tertiary"
+          />
+        </div>
+        {error && (
+          <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">
+            {error}
+          </p>
+        )}
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            disabled={isResettingPassword}
+            className="min-h-[44px] flex-1 rounded-lg bg-tertiary text-sm font-semibold text-white hover:bg-tertiary-dark disabled:opacity-60"
+          >
+            {isResettingPassword ? 'Resetting…' : 'Reset password'}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="min-h-[44px] rounded-lg border border-secondary/30 px-6 text-sm font-semibold text-secondary hover:bg-neutral"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </Modal>
   )
 }
 
@@ -148,6 +235,7 @@ export function Fellows() {
   const { showToast } = useToast()
   const [query, setQuery] = useState('')
   const [viewingUser, setViewingUser] = useState<UserRead | null>(null)
+  const [resettingUser, setResettingUser] = useState<UserRead | null>(null)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -180,16 +268,16 @@ export function Fellows() {
       setLga('')
       setPhone('')
       setAddModalOpen(false)
-    } catch {
-      showToast("Couldn't add this fellow — please try again.")
+    } catch (err) {
+      showToast(getErrorMessage(err, "Couldn't add this fellow — please try again."))
     }
   }
 
   async function handleToggleActive(user: UserRead) {
     try {
       await updateUser(user.id, { is_active: !user.is_active })
-    } catch {
-      showToast("Couldn't update this fellow — please try again.")
+    } catch (err) {
+      showToast(getErrorMessage(err, "Couldn't update this fellow — please try again."))
     }
   }
 
@@ -197,8 +285,8 @@ export function Fellows() {
     const current = user.training_status ?? 'not_started'
     try {
       await updateUser(user.id, { training_status: NEXT_TRAINING_STATUS[current] })
-    } catch {
-      showToast("Couldn't update training status — please try again.")
+    } catch (err) {
+      showToast(getErrorMessage(err, "Couldn't update training status — please try again."))
     }
   }
 
@@ -283,6 +371,7 @@ export function Fellows() {
                             icon: GraduationCap,
                             onClick: () => handleAdvanceTraining(user),
                           },
+                          { label: 'Reset password', icon: KeyRound, onClick: () => setResettingUser(user) },
                           {
                             label: user.is_active ? 'Deactivate' : 'Reactivate',
                             icon: user.is_active ? UserX : UserCheck,
@@ -345,8 +434,16 @@ export function Fellows() {
                     </button>
                     <button
                       type="button"
+                      onClick={() => setResettingUser(user)}
+                      className="flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg border border-secondary/30 text-sm font-semibold text-primary hover:bg-neutral"
+                    >
+                      <KeyRound size={16} />
+                      Reset password
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => handleToggleActive(user)}
-                      className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg border text-sm font-semibold ${
+                      className={`col-span-2 flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg border text-sm font-semibold ${
                         user.is_active
                           ? 'border-danger text-danger hover:bg-danger hover:text-white'
                           : 'border-success text-success hover:bg-success hover:text-white'
@@ -370,6 +467,8 @@ export function Fellows() {
           <ProfileDetails user={viewingUser} />
         </Modal>
       )}
+
+      {resettingUser && <ResetPasswordModal user={resettingUser} onClose={() => setResettingUser(null)} />}
 
       {addModalOpen && (
         <Modal title="Add fellow" onClose={() => setAddModalOpen(false)}>

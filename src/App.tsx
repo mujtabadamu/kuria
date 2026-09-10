@@ -7,12 +7,15 @@ import { PublicLayout } from './layouts/PublicLayout'
 import { AppLayout } from './layouts/AppLayout'
 import { FellowLayout } from './layouts/FellowLayout'
 import { Login } from './pages/Login'
+import { ChangePassword } from './pages/ChangePassword'
 import { Dashboard } from './pages/Dashboard'
 import { Reports } from './pages/Reports'
 import { ReportDetail } from './pages/ReportDetail'
 import { MapPage } from './pages/MapPage'
 import { Alerts } from './pages/Alerts'
 import { Fellows } from './pages/Fellows'
+import { AiReviewQueue } from './pages/AiReviewQueue'
+import { AiJobDetail } from './pages/AiJobDetail'
 import { FellowDashboard } from './pages/FellowDashboard'
 import { FellowReports } from './pages/FellowReports'
 import { FellowProfile } from './pages/FellowProfile'
@@ -33,6 +36,8 @@ function App() {
                 <Route path="/about" element={<About />} />
               </Route>
 
+              <Route path="/change-password" element={<ChangePassword />} />
+
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/reports" element={<Reports />} />
@@ -40,6 +45,8 @@ function App() {
                 <Route path="/map" element={<MapPage />} />
                 <Route path="/alerts" element={<Alerts />} />
                 <Route path="/fellows" element={<Fellows />} />
+                <Route path="/ai-jobs" element={<AiReviewQueue />} />
+                <Route path="/ai-jobs/:id" element={<AiJobDetail />} />
                 <Route path="/settings" element={<Settings />} />
               </Route>
 
@@ -47,6 +54,8 @@ function App() {
                 <Route path="/fellow" element={<FellowDashboard />} />
                 <Route path="/fellow/reports" element={<FellowReports />} />
                 <Route path="/fellow/reports/:id" element={<ReportDetail />} />
+                <Route path="/fellow/ai-jobs" element={<AiReviewQueue />} />
+                <Route path="/fellow/ai-jobs/:id" element={<AiJobDetail />} />
                 <Route path="/fellow/profile" element={<FellowProfile />} />
               </Route>
             </Routes>

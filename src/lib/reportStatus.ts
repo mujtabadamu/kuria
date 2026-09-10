@@ -92,3 +92,25 @@ export const REPORT_STATUS_CONFIG: Record<ReportStatus, ReportStatusConfig> = {
 }
 
 export const REPORT_STATUSES = Object.keys(REPORT_STATUS_CONFIG) as ReportStatus[]
+
+// The documented status-transition graph (backend/new.md §4). Used to gate
+// which action buttons appear on a report, since the backend enforces this
+// server-side anyway and showing an action that will just 409 is bad UX.
+// The two commented edges happen asynchronously via WhatsApp delivery/reply
+// and are never triggered by a frontend action.
+export const REPORT_TRANSITIONS: Record<ReportStatus, ReportStatus[]> = {
+  received_unverified: ['assigned', 'under_review', 'escalated'],
+  assigned: ['under_review', 'clarification_requested', 'escalated'],
+  under_review: ['clarification_requested', 'recommended', 'escalated'],
+  clarification_requested: ['awaiting_clarification'], // async, via WhatsApp delivery
+  awaiting_clarification: ['under_review', 'recommended'], // "-> under_review" is async, via reply
+  recommended: ['verified', 'rejected', 'escalated'],
+  verified: ['archived'],
+  rejected: ['archived'],
+  escalated: ['under_review', 'verified', 'rejected'],
+  archived: [],
+}
+
+export function canTransitionTo(from: ReportStatus, to: ReportStatus): boolean {
+  return REPORT_TRANSITIONS[from].includes(to)
+}

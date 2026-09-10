@@ -27,6 +27,7 @@ const config: ConfigFile = {
     { pattern: 'getReportHistoryApiV1ReportsPublicRefHistoryGet', providesTags: ['Report'] },
     { pattern: 'createReportApiApiV1ReportsPost', invalidatesTags: ['ReportList'] },
     { pattern: 'assignApiApiV1ReportsPublicRefAssignPatch', invalidatesTags: ['Report', 'ReportList'] },
+    { pattern: 'startReviewApiV1ReportsPublicRefStartReviewPost', invalidatesTags: ['Report', 'ReportList'] },
     { pattern: 'addEvidenceApiApiV1ReportsPublicRefEvidencePost', invalidatesTags: ['Report', 'Evidence'] },
     { pattern: 'listEvidenceApiApiV1ReportsPublicRefEvidenceGet', providesTags: ['Evidence'] },
     {
@@ -35,19 +36,24 @@ const config: ConfigFile = {
     },
     {
       pattern: 'requestClarificationApiV1ReportsPublicRefClarificationPost',
-      invalidatesTags: ['Report'],
+      invalidatesTags: ['Report', 'Clarifications'],
     },
+    { pattern: 'listClarificationsApiV1ReportsPublicRefClarificationsGet', providesTags: ['Clarifications'] },
     { pattern: 'recommendApiApiV1ReportsPublicRefRecommendPost', invalidatesTags: ['Report'] },
     { pattern: 'decideApiApiV1ReportsPublicRefDecidePost', invalidatesTags: ['Report', 'ReportList'] },
     { pattern: 'escalateApiApiV1ReportsPublicRefEscalatePost', invalidatesTags: ['Report', 'ReportList'] },
     { pattern: 'listUsersApiV1AuthUsersGet', providesTags: ['User'] },
     { pattern: 'createUserApiV1AuthUsersPost', invalidatesTags: ['User'] },
     { pattern: 'updateUserApiV1AuthUsersUserIdPatch', invalidatesTags: ['User'] },
+    { pattern: 'resetUserPasswordApiV1AuthUsersUserIdResetPasswordPost', invalidatesTags: ['User'] },
     { pattern: 'metricsApiV1AnalyticsMetricsGet', providesTags: ['Analytics'] },
     { pattern: 'listAlertsApiV1AlertsGet', providesTags: ['AlertList'] },
     { pattern: 'getAlertApiV1AlertsAlertIdGet', providesTags: ['Alert'] },
     { pattern: 'createAlertApiV1AlertsPost', invalidatesTags: ['AlertList'] },
     { pattern: 'updateAlertApiV1AlertsAlertIdPatch', invalidatesTags: ['Alert', 'AlertList'] },
+    { pattern: 'listAiJobsApiV1AiJobsGet', providesTags: ['AiJobList'] },
+    { pattern: 'assignAiJobApiV1AiJobsJobIdAssignPatch', invalidatesTags: ['AiJobList'] },
+    { pattern: 'resolveAiJobApiV1AiJobsJobIdResolvePost', invalidatesTags: ['AiJobList'] },
   ],
 }
 

@@ -3,6 +3,7 @@ import {
   useListUsersQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
+  useResetUserPasswordMutation,
   type CreateUserArg,
   type UpdateUserArg,
 } from '../api/kuria'
@@ -17,6 +18,7 @@ export function useUsers() {
   })
   const [createUserMutation, { isLoading: isCreating }] = useCreateUserMutation()
   const [updateUserMutation, { isLoading: isUpdating }] = useUpdateUserMutation()
+  const [resetPasswordMutation, { isLoading: isResettingPassword }] = useResetUserPasswordMutation()
 
   const users = data?.items ?? []
 
@@ -30,6 +32,12 @@ export function useUsers() {
 
   async function updateUser(userId: number, userUpdate: UpdateUserArg['userUpdate']) {
     await updateUserMutation({ userId, userUpdate }).unwrap()
+  }
+
+  // Revokes the user's existing tokens and starts a new 72-hour
+  // temporary-password window (backend/new.md §3).
+  async function resetPassword(userId: number, temporaryPassword: string) {
+    await resetPasswordMutation({ userId, adminPasswordReset: { temporary_password: temporaryPassword } }).unwrap()
   }
 
   return {
@@ -46,5 +54,7 @@ export function useUsers() {
     isCreating,
     updateUser,
     isUpdating,
+    resetPassword,
+    isResettingPassword,
   }
 }

@@ -17,6 +17,16 @@ const injectedRtkApi = api.injectEndpoints({
     >({
       query: () => ({ url: `/api/v1/auth/me` }),
     }),
+    changeOwnPasswordApiV1AuthChangePasswordPost: build.mutation<
+      ChangeOwnPasswordApiV1AuthChangePasswordPostApiResponse,
+      ChangeOwnPasswordApiV1AuthChangePasswordPostApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/auth/change-password`,
+        method: "POST",
+        body: queryArg.passwordChange,
+      }),
+    }),
     createUserApiV1AuthUsersPost: build.mutation<
       CreateUserApiV1AuthUsersPostApiResponse,
       CreateUserApiV1AuthUsersPostApiArg
@@ -51,6 +61,61 @@ const injectedRtkApi = api.injectEndpoints({
         body: queryArg.userUpdate,
       }),
       invalidatesTags: ["User"],
+    }),
+    resetUserPasswordApiV1AuthUsersUserIdResetPasswordPost: build.mutation<
+      ResetUserPasswordApiV1AuthUsersUserIdResetPasswordPostApiResponse,
+      ResetUserPasswordApiV1AuthUsersUserIdResetPasswordPostApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/auth/users/${queryArg.userId}/reset-password`,
+        method: "POST",
+        body: queryArg.adminPasswordReset,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    listAiJobsApiV1AiJobsGet: build.query<
+      ListAiJobsApiV1AiJobsGetApiResponse,
+      ListAiJobsApiV1AiJobsGetApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/ai/jobs`,
+        params: {
+          status: queryArg.status,
+          skip: queryArg.skip,
+          limit: queryArg.limit,
+        },
+      }),
+      providesTags: ["AiJobList"],
+    }),
+    assignAiJobApiV1AiJobsJobIdAssignPatch: build.mutation<
+      AssignAiJobApiV1AiJobsJobIdAssignPatchApiResponse,
+      AssignAiJobApiV1AiJobsJobIdAssignPatchApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/ai/jobs/${queryArg.jobId}/assign`,
+        method: "PATCH",
+        params: {
+          assignee_id: queryArg.assigneeId,
+        },
+      }),
+      invalidatesTags: ["AiJobList"],
+    }),
+    resolveAiJobApiV1AiJobsJobIdResolvePost: build.mutation<
+      ResolveAiJobApiV1AiJobsJobIdResolvePostApiResponse,
+      ResolveAiJobApiV1AiJobsJobIdResolvePostApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/ai/jobs/${queryArg.jobId}/resolve`,
+        method: "POST",
+        body: queryArg.aiJobResolve,
+      }),
+      invalidatesTags: ["AiJobList"],
+    }),
+    getAiJobMediaApiV1AiJobsJobIdMediaGet: build.query<
+      GetAiJobMediaApiV1AiJobsJobIdMediaGetApiResponse,
+      GetAiJobMediaApiV1AiJobsJobIdMediaGetApiArg
+    >({
+      query: (queryArg) => ({ url: `/api/v1/ai/jobs/${queryArg.jobId}/media` }),
     }),
     listReportsApiV1ReportsGet: build.query<
       ListReportsApiV1ReportsGetApiResponse,
@@ -129,6 +194,16 @@ const injectedRtkApi = api.injectEndpoints({
       }),
       invalidatesTags: ["Report", "ReportList"],
     }),
+    startReviewApiV1ReportsPublicRefStartReviewPost: build.mutation<
+      StartReviewApiV1ReportsPublicRefStartReviewPostApiResponse,
+      StartReviewApiV1ReportsPublicRefStartReviewPostApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/reports/${queryArg.publicRef}/start-review`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Report", "ReportList"],
+    }),
     addEvidenceApiApiV1ReportsPublicRefEvidencePost: build.mutation<
       AddEvidenceApiApiV1ReportsPublicRefEvidencePostApiResponse,
       AddEvidenceApiApiV1ReportsPublicRefEvidencePostApiArg
@@ -172,7 +247,16 @@ const injectedRtkApi = api.injectEndpoints({
         method: "POST",
         body: queryArg.clarificationCreate,
       }),
-      invalidatesTags: ["Report"],
+      invalidatesTags: ["Report", "Clarifications"],
+    }),
+    listClarificationsApiV1ReportsPublicRefClarificationsGet: build.query<
+      ListClarificationsApiV1ReportsPublicRefClarificationsGetApiResponse,
+      ListClarificationsApiV1ReportsPublicRefClarificationsGetApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/reports/${queryArg.publicRef}/clarifications`,
+      }),
+      providesTags: ["Clarifications"],
     }),
     recommendApiApiV1ReportsPublicRefRecommendPost: build.mutation<
       RecommendApiApiV1ReportsPublicRefRecommendPostApiResponse,
@@ -306,6 +390,11 @@ export type LoginApiV1AuthLoginPostApiArg = {
 export type MeApiV1AuthMeGetApiResponse =
   /** status 200 Successful Response */ UserRead;
 export type MeApiV1AuthMeGetApiArg = void;
+export type ChangeOwnPasswordApiV1AuthChangePasswordPostApiResponse =
+  /** status 200 Successful Response */ Token;
+export type ChangeOwnPasswordApiV1AuthChangePasswordPostApiArg = {
+  passwordChange: PasswordChange;
+};
 export type CreateUserApiV1AuthUsersPostApiResponse =
   /** status 201 Successful Response */ UserRead;
 export type CreateUserApiV1AuthUsersPostApiArg = {
@@ -322,6 +411,36 @@ export type UpdateUserApiV1AuthUsersUserIdPatchApiResponse =
 export type UpdateUserApiV1AuthUsersUserIdPatchApiArg = {
   userId: number;
   userUpdate: UserUpdate;
+};
+export type ResetUserPasswordApiV1AuthUsersUserIdResetPasswordPostApiResponse =
+  /** status 200 Successful Response */ UserRead;
+export type ResetUserPasswordApiV1AuthUsersUserIdResetPasswordPostApiArg = {
+  userId: number;
+  adminPasswordReset: AdminPasswordReset;
+};
+export type ListAiJobsApiV1AiJobsGetApiResponse =
+  /** status 200 Successful Response */ AiJobListResponse;
+export type ListAiJobsApiV1AiJobsGetApiArg = {
+  status?: AiJobStatus | null;
+  skip?: number;
+  limit?: number;
+};
+export type AssignAiJobApiV1AiJobsJobIdAssignPatchApiResponse =
+  /** status 200 Successful Response */ AiJobRead;
+export type AssignAiJobApiV1AiJobsJobIdAssignPatchApiArg = {
+  jobId: number;
+  assigneeId: number;
+};
+export type ResolveAiJobApiV1AiJobsJobIdResolvePostApiResponse =
+  /** status 200 Successful Response */ AiJobRead;
+export type ResolveAiJobApiV1AiJobsJobIdResolvePostApiArg = {
+  jobId: number;
+  aiJobResolve: AiJobResolve;
+};
+export type GetAiJobMediaApiV1AiJobsJobIdMediaGetApiResponse =
+  /** status 200 Successful Response */ any;
+export type GetAiJobMediaApiV1AiJobsJobIdMediaGetApiArg = {
+  jobId: number;
 };
 export type ListReportsApiV1ReportsGetApiResponse =
   /** status 200 Successful Response */ ReportListResponse;
@@ -364,6 +483,11 @@ export type AssignApiApiV1ReportsPublicRefAssignPatchApiArg = {
   publicRef: string;
   assigneeId: number;
 };
+export type StartReviewApiV1ReportsPublicRefStartReviewPostApiResponse =
+  /** status 200 Successful Response */ ReportRead;
+export type StartReviewApiV1ReportsPublicRefStartReviewPostApiArg = {
+  publicRef: string;
+};
 export type AddEvidenceApiApiV1ReportsPublicRefEvidencePostApiResponse =
   /** status 200 Successful Response */ EvidenceRead;
 export type AddEvidenceApiApiV1ReportsPublicRefEvidencePostApiArg = {
@@ -387,6 +511,11 @@ export type RequestClarificationApiV1ReportsPublicRefClarificationPostApiRespons
 export type RequestClarificationApiV1ReportsPublicRefClarificationPostApiArg = {
   publicRef: string;
   clarificationCreate: ClarificationCreate;
+};
+export type ListClarificationsApiV1ReportsPublicRefClarificationsGetApiResponse =
+  /** status 200 Successful Response */ ClarificationRead[];
+export type ListClarificationsApiV1ReportsPublicRefClarificationsGetApiArg = {
+  publicRef: string;
 };
 export type RecommendApiApiV1ReportsPublicRefRecommendPostApiResponse =
   /** status 200 Successful Response */ ReportRead;
@@ -456,7 +585,10 @@ export type HealthCheckApiV1HealthGetApiArg = void;
 export type Token = {
   access_token: string;
   token_type?: string;
+  /** Token lifetime in seconds; temporary-password tokens use 900 seconds */
   expires_in: number;
+  /** Redirect to the password-change screen when true */
+  must_change_password?: boolean;
 };
 export type UserRole =
   "admin" | "verification_lead" | "fellow" | "stakeholder_reader";
@@ -469,10 +601,22 @@ export type UserRead = {
   training_status?: ("not_started" | "in_progress" | "completed") | null;
   role: UserRole;
   is_active: boolean;
+  /** Whether dashboard access is blocked until the password is changed */
+  must_change_password: boolean;
+  /** Expiry of the current temporary password */
+  temporary_password_expires_at?: string | null;
+  /** Time the user last chose a permanent password */
+  password_changed_at?: string | null;
+  /** Time of the latest successful login */
+  last_login_at?: string | null;
   verified_count?: number;
   flagged_count?: number;
   created_at: string;
   updated_at: string;
+};
+export type PasswordChange = {
+  current_password: string;
+  new_password: string;
 };
 export type ValidationError = {
   loc: (string | number)[];
@@ -486,6 +630,7 @@ export type HttpValidationError = {
 };
 export type UserCreate = {
   email: string;
+  /** Admin-selected temporary password; expires after 72 hours and must be changed on first login */
   password: string;
   full_name: string;
   phone?: string | null;
@@ -506,6 +651,35 @@ export type UserUpdate = {
   training_status?: ("not_started" | "in_progress" | "completed") | null;
   role?: UserRole | null;
   is_active?: boolean | null;
+};
+export type AdminPasswordReset = {
+  /** New admin-selected temporary password; expires after 72 hours */
+  temporary_password: string;
+};
+export type AiJobStatus =
+  "queued" | "processing" | "succeeded" | "low_confidence" | "failed";
+export type AiJobRead = {
+  id: number;
+  wam_media_id: string;
+  reporter_hash?: string | null;
+  status: AiJobStatus;
+  attempts: number;
+  last_error?: string | null;
+  assigned_to?: number | null;
+  reviewed_by?: number | null;
+  corrected_transcript?: string | null;
+  resolution?: string | null;
+  reviewed_at?: string | null;
+  created_at: string;
+  updated_at: string;
+};
+export type AiJobListResponse = {
+  items: AiJobRead[];
+  total: number;
+};
+export type AiJobResolve = {
+  resolution: "incident_report" | "voter_education" | "unusable";
+  corrected_transcript?: string | null;
 };
 export type PollingUnitRead = {
   pu_code: string;
@@ -610,6 +784,11 @@ export type ClarificationRead = {
   created_at: string;
   replied_at?: string | null;
   reply_text?: string | null;
+  cancelled_at?: string | null;
+  delivery_status?: string | null;
+  provider_message_id?: string | null;
+  sent_at?: string | null;
+  delivery_error?: string | null;
 };
 export type ClarificationCreate = {
   message: string;
@@ -694,9 +873,15 @@ export type HealthResponse = {
 export const {
   useLoginApiV1AuthLoginPostMutation,
   useMeApiV1AuthMeGetQuery,
+  useChangeOwnPasswordApiV1AuthChangePasswordPostMutation,
   useCreateUserApiV1AuthUsersPostMutation,
   useListUsersApiV1AuthUsersGetQuery,
   useUpdateUserApiV1AuthUsersUserIdPatchMutation,
+  useResetUserPasswordApiV1AuthUsersUserIdResetPasswordPostMutation,
+  useListAiJobsApiV1AiJobsGetQuery,
+  useAssignAiJobApiV1AiJobsJobIdAssignPatchMutation,
+  useResolveAiJobApiV1AiJobsJobIdResolvePostMutation,
+  useGetAiJobMediaApiV1AiJobsJobIdMediaGetQuery,
   useListReportsApiV1ReportsGetQuery,
   useCreateReportApiApiV1ReportsPostMutation,
   useSearchPusApiV1ReportsPollingUnitsSearchGetQuery,
@@ -704,10 +889,12 @@ export const {
   useGetReportAnonymizedApiV1ReportsPublicRefAnonymizedGetQuery,
   useGetReportHistoryApiV1ReportsPublicRefHistoryGetQuery,
   useAssignApiApiV1ReportsPublicRefAssignPatchMutation,
+  useStartReviewApiV1ReportsPublicRefStartReviewPostMutation,
   useAddEvidenceApiApiV1ReportsPublicRefEvidencePostMutation,
   useListEvidenceApiApiV1ReportsPublicRefEvidenceGetQuery,
   useCorrectTranscriptApiV1ReportsPublicRefCorrectTranscriptPatchMutation,
   useRequestClarificationApiV1ReportsPublicRefClarificationPostMutation,
+  useListClarificationsApiV1ReportsPublicRefClarificationsGetQuery,
   useRecommendApiApiV1ReportsPublicRefRecommendPostMutation,
   useDecideApiApiV1ReportsPublicRefDecidePostMutation,
   useEscalateApiApiV1ReportsPublicRefEscalatePostMutation,

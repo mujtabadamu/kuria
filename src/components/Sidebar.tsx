@@ -6,6 +6,7 @@ import {
   Map,
   ShieldAlert,
   Users,
+  Headphones,
   Settings,
   X,
   ChevronsLeft,
@@ -18,6 +19,7 @@ const items = [
   { to: '/map', label: 'Map', icon: Map },
   { to: '/alerts', label: 'Alerts', icon: ShieldAlert },
   { to: '/fellows', label: 'Fellows', icon: Users },
+  { to: '/ai-jobs', label: 'AI Review', icon: Headphones },
   { to: '/settings', label: 'Settings', icon: Settings },
 ]
 

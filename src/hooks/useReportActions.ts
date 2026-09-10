@@ -1,5 +1,6 @@
 import {
   useAssignReportMutation,
+  useStartReportReviewMutation,
   useRecommendReportDecisionMutation,
   useDecideReportMutation,
   useEscalateReportMutation,
@@ -9,15 +10,14 @@ import {
   type ReportStatus,
 } from '../api/kuria'
 
-// The API exposes named action endpoints (recommend/decide/escalate/assign/
-// clarification), each taking an arbitrary `to_status` — it doesn't publish
-// which transitions are actually valid from which current status. This hook
-// offers a defensible default shape (recommend/decide choose between
-// verified/rejected, escalate always targets 'escalated') rather than a raw
-// "pick any of the 10 statuses" control; the real transition rules should be
-// confirmed against backend/product before this ships.
+// Action set and valid `to_status` values per backend/new.md §5: recommend
+// always targets exactly "recommended" (no target choice); decide picks the
+// final outcome (verified/rejected/escalated); escalate always targets
+// "escalated". Which of these are offered at all is further gated in
+// ReportDetail by `REPORT_TRANSITIONS` (src/lib/reportStatus.ts).
 export function useReportActions(publicRef: string | undefined) {
   const [assignMutation, assignState] = useAssignReportMutation()
+  const [startReviewMutation, startReviewState] = useStartReportReviewMutation()
   const [recommendMutation, recommendState] = useRecommendReportDecisionMutation()
   const [decideMutation, decideState] = useDecideReportMutation()
   const [escalateMutation, escalateState] = useEscalateReportMutation()
@@ -30,12 +30,17 @@ export function useReportActions(publicRef: string | undefined) {
     await assignMutation({ publicRef, assigneeId }).unwrap()
   }
 
-  async function recommend(toStatus: Extract<ReportStatus, 'verified' | 'rejected'>, reason: string) {
+  async function startReview() {
     if (!publicRef) return
-    await recommendMutation({ publicRef, statusTransition: { to_status: toStatus, reason } }).unwrap()
+    await startReviewMutation({ publicRef }).unwrap()
   }
 
-  async function decide(toStatus: Extract<ReportStatus, 'verified' | 'rejected'>, reason: string) {
+  async function recommend(reason: string) {
+    if (!publicRef) return
+    await recommendMutation({ publicRef, statusTransition: { to_status: 'recommended', reason } }).unwrap()
+  }
+
+  async function decide(toStatus: Extract<ReportStatus, 'verified' | 'rejected' | 'escalated'>, reason: string) {
     if (!publicRef) return
     await decideMutation({ publicRef, statusTransition: { to_status: toStatus, reason } }).unwrap()
   }
@@ -66,6 +71,8 @@ export function useReportActions(publicRef: string | undefined) {
   return {
     assignTo,
     isAssigning: assignState.isLoading,
+    startReview,
+    isStartingReview: startReviewState.isLoading,
     recommend,
     isRecommending: recommendState.isLoading,
     decide,

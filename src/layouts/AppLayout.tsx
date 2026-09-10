@@ -4,10 +4,13 @@ import { Topbar } from '../components/Topbar'
 import { useAuth } from '../hooks/useAuth'
 
 export function AppLayout() {
-  const { isAuthenticated, isLoadingUser, currentUser } = useAuth()
+  const { isAuthenticated, isLoadingUser, currentUser, mustChangePassword } = useAuth()
 
   if (!isAuthenticated && !isLoadingUser) return <Navigate to="/login" replace />
   if (isLoadingUser) return null
+  // A temporary-password token can only call /auth/me and /auth/change-password —
+  // every other request here would 403, so redirect before anything else loads.
+  if (mustChangePassword) return <Navigate to="/change-password" replace />
   if (currentUser?.role === 'fellow') return <Navigate to="/fellow" replace />
 
   return (

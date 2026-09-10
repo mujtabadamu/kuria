@@ -1,5 +1,5 @@
 import { Navigate, NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Moon, Sun, User } from 'lucide-react'
+import { LayoutDashboard, Headphones, Moon, Sun, User } from 'lucide-react'
 import { useTheme } from '../lib/useTheme'
 import { useAuth } from '../hooks/useAuth'
 
@@ -8,15 +8,17 @@ import { useAuth } from '../hooks/useAuth'
 // work reports assigned to them, they don't create new ones from the dashboard.
 const navItems = [
   { to: '/fellow', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/fellow/ai-jobs', label: 'AI Review', icon: Headphones, end: false },
   { to: '/fellow/profile', label: 'Profile', icon: User, end: false },
 ]
 
 export function FellowLayout() {
   const { theme, toggleTheme } = useTheme()
-  const { isAuthenticated, isLoadingUser, currentUser } = useAuth()
+  const { isAuthenticated, isLoadingUser, currentUser, mustChangePassword } = useAuth()
 
   if (!isAuthenticated && !isLoadingUser) return <Navigate to="/login" replace />
   if (isLoadingUser) return null
+  if (mustChangePassword) return <Navigate to="/change-password" replace />
   if (currentUser && currentUser.role !== 'fellow') return <Navigate to="/dashboard" replace />
 
   return (
@@ -46,7 +48,7 @@ export function FellowLayout() {
       </main>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-2 border-t border-secondary/30 bg-surface pb-[env(safe-area-inset-bottom)]"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-secondary/30 bg-surface pb-[env(safe-area-inset-bottom)]"
         aria-label="Fellow"
       >
         {navItems.map(({ to, label, icon: Icon, end }) => (

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { getErrorMessage } from '../lib/apiError'
 
 export function Login() {
   const navigate = useNavigate()
@@ -15,12 +16,19 @@ export function Login() {
     try {
       await login({ email, password })
       // Role-based routing (admin/verification_lead/stakeholder_reader vs.
-      // fellow) is enforced by AppLayout/FellowLayout's own guards, which
-      // read the real role from /auth/me — so we always land on /dashboard
-      // and let the guard bounce fellows to /fellow.
+      // fellow) and the forced password-change screen are both enforced by
+      // AppLayout/FellowLayout's own guards, reading the real role/flag from
+      // /auth/me — so we always land on /dashboard and let the guard redirect.
       navigate('/dashboard')
-    } catch {
-      setError('Invalid email or password.')
+    } catch (err) {
+      // A 401 here means invalid credentials, not an expired session — the
+      // shared helper's 401 copy is for the latter, so this is handled
+      // separately rather than through getErrorMessage's default mapping.
+      if (err && typeof err === 'object' && 'status' in err && (err as { status?: number }).status === 401) {
+        setError('Invalid email or password.')
+      } else {
+        setError(getErrorMessage(err, 'Something went wrong — please try again.'))
+      }
     }
   }
 
