@@ -4,7 +4,7 @@ import {
   LayoutDashboard,
   FileText,
   Map,
-  ShieldAlert,
+  // ShieldAlert, // unused while Alerts nav entry is commented out below
   Users,
   Headphones,
   Settings,
@@ -17,7 +17,8 @@ const items = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/reports', label: 'Reports', icon: FileText },
   { to: '/map', label: 'Map', icon: Map },
-  { to: '/alerts', label: 'Alerts', icon: ShieldAlert },
+  // TEMP: hidden from nav until Alerts is ready to show management — route/page still exist.
+  // { to: '/alerts', label: 'Alerts', icon: ShieldAlert },
   { to: '/fellows', label: 'Fellows', icon: Users },
   { to: '/ai-jobs', label: 'AI Review', icon: Headphones },
   { to: '/settings', label: 'Settings', icon: Settings },
