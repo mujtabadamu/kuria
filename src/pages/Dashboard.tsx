@@ -7,36 +7,9 @@ import { LoadingState, ErrorState } from '../components/QueryState'
 import { useListReportsQuery } from '../api/kuria'
 import { useAnalyticsMetrics } from '../hooks/useAnalyticsMetrics'
 import { useAlerts } from '../hooks/useAlerts'
-import { REPORT_STATUS_CONFIG } from '../lib/reportStatus'
-
-function BreakdownList({ title, counts }: { title: string; counts: Record<string, number> }) {
-  const entries = Object.entries(counts)
-    .filter(([, count]) => count > 0)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-  const max = Math.max(1, ...entries.map(([, count]) => count))
-
-  if (entries.length === 0) return null
-
-  return (
-    <div>
-      <p className="label-text text-secondary">{title}</p>
-      <div className="mt-2 space-y-1.5">
-        {entries.map(([key, count]) => (
-          <div key={key} className="flex items-center gap-2 text-sm">
-            <span className="w-28 shrink-0 truncate text-secondary">
-              {REPORT_STATUS_CONFIG[key as keyof typeof REPORT_STATUS_CONFIG]?.label ?? key}
-            </span>
-            <div className="h-2 flex-1 overflow-hidden rounded-full bg-neutral">
-              <div className="h-full rounded-full bg-tertiary" style={{ width: `${(count / max) * 100}%` }} />
-            </div>
-            <span className="w-8 shrink-0 text-right font-semibold tabular-nums text-primary">{count}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
+import { StatusDonut } from '../components/StatusDonut'
+import { TopNDonut } from '../components/TopNDonut'
+import { groupStatusCounts } from '../lib/statusGroups'
 
 export function Dashboard() {
   // Recent reports + map preview: a small unfiltered page of the real list.
@@ -63,10 +36,25 @@ export function Dashboard() {
               <MetricCard label="LGAs covered" value={metrics.lgas_covered} icon={MapPinned} />
             </div>
 
-            <div className="grid gap-4 rounded-2xl border border-secondary/30 bg-surface p-5 sm:grid-cols-3">
-              <BreakdownList title="By status" counts={metrics.by_status} />
-              <BreakdownList title="By incident type" counts={metrics.by_incident_type} />
-              <BreakdownList title="By state" counts={metrics.by_state} />
+            <div className="grid gap-6 rounded-2xl border border-secondary/30 bg-surface p-5 sm:grid-cols-3">
+              <div>
+                <p className="label-text text-secondary">By status</p>
+                <div className="mt-3">
+                  <StatusDonut counts={groupStatusCounts(metrics.by_status)} />
+                </div>
+              </div>
+              <div>
+                <p className="label-text text-secondary">By incident type</p>
+                <div className="mt-3">
+                  <TopNDonut counts={metrics.by_incident_type} />
+                </div>
+              </div>
+              <div>
+                <p className="label-text text-secondary">By state</p>
+                <div className="mt-3">
+                  <TopNDonut counts={metrics.by_state} />
+                </div>
+              </div>
             </div>
           </>
         )
